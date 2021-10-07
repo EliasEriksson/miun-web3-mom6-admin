@@ -1,0 +1,92 @@
+@import "reset";
+@import "mixins";
+@import "svg";
+
+body {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  line-height: 1.5;
+  font-family: "Open Sans", sans-serif;
+}
+
+.main-wrapper {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  max-width: 960px;
+  main {
+    width: 100%;
+  }
+}
+
+.form-wrapper {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  background-color: beige;
+  margin: 10px;
+}
+
+.course-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 20px;
+  padding: 10px;
+  width: 100%;
+
+  > div {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  label {
+    display: flex;
+    flex-direction: column;
+    width: fit-content;
+  }
+
+  .university {
+    width: 100%;
+    max-width: 25ch;
+  }
+
+  .name {
+    width: 100%;
+    max-width: 50ch;
+  }
+
+  .credit {
+    width: 100%;
+    max-width: 15ch;
+  }
+}
+
+.course-form-controls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  row-gap: 10px;
+  margin: 10px;
+}
+
+.course-section {
+  display: flex;
+  flex-direction: column;
+
+  .section-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+
+    button {
+      width: 40px;
+      height: 40px;
+    }
+  }
+}
+
