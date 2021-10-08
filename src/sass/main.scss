@@ -16,6 +16,7 @@ body {
   justify-content: center;
   width: 100%;
   max-width: 960px;
+
   main {
     width: 100%;
   }
@@ -27,6 +28,15 @@ body {
   gap: 10px;
   background-color: beige;
   margin: 10px;
+
+  .form-controls {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    row-gap: 10px;
+    margin: 10px;
+  }
 }
 
 .course-form {
@@ -37,40 +47,24 @@ body {
   padding: 10px;
   width: 100%;
 
-  > div {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-  }
-
   label {
     display: flex;
     flex-direction: column;
-    width: fit-content;
-  }
-
-  .university {
     width: 100%;
-    max-width: 25ch;
-  }
+    max-width: 500px;
 
-  .name {
-    width: 100%;
-    max-width: 50ch;
-  }
+    > * {
+      width: 100%;
+    }
 
-  .credit {
-    width: 100%;
-    max-width: 15ch;
+    > input, > textarea {
+      height: 2.5em;
+      padding: 10px;
+      outline: none;
+      overflow: hidden;
+      resize: none;
+    }
   }
-}
-
-.course-form-controls {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  row-gap: 10px;
-  margin: 10px;
 }
 
 .course-section {
@@ -82,11 +76,27 @@ body {
     align-items: center;
     justify-content: space-between;
     width: 100%;
+  }
 
-    button {
-      width: 40px;
-      height: 40px;
-    }
+  #course-list {
+    height: 0;
+    overflow: hidden;
+    transition: height 1s ease-out;
   }
 }
 
+.expand-button {
+  transition: transform 200ms linear;
+}
+
+.rotate-90deg {
+  transform: rotate(90deg);
+}
+
+textarea {
+  height: 2.5em;
+  padding: 10px;
+  outline: none;
+  overflow: hidden;
+  resize: none;
+}

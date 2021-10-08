@@ -1,4 +1,8 @@
-export const apiURL = new URL("http://web3mom6rest.eliaseriksson.eu/");
+export const apiURL = new URL("https://web3mom6rest.eliaseriksson.eu/");
+
+export const translate = {
+
+}
 
 export type RequestMethods = "GET" | "POST" | "PUT" | "DELETE";
 
@@ -27,3 +31,5 @@ export type WebPage = {
 }
 
 export const _ = "";
+
+export type Callable = (...any) => any;
