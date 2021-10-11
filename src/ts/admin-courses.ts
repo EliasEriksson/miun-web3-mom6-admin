@@ -83,7 +83,7 @@ class Content<T extends { [key: string]: any }> {
         });
 
         contentNode.querySelector(".delete-button").addEventListener("click", () => {
-            this.master.deleteContent(this);
+            this.master.deleteContent(this, contentNode);
         });
 
         for (const contentKey in this.content) {
@@ -122,6 +122,7 @@ abstract class ContentManager<T> {
     private readonly contentTemplate: string;
 
     private contentListElement: HTMLDivElement;
+    private originalOrder: Content<T>[];
     private content: Content<T>[];
 
     constructor(token: string, endpoint: string, contentTemplate: string, resultListElement: HTMLDivElement) {
@@ -129,6 +130,8 @@ abstract class ContentManager<T> {
         this.endpoint = endpoint;
         this.contentTemplate = contentTemplate;
         this.contentListElement = resultListElement;
+        this.content = [];
+        this.originalOrder = [];
     }
 
     createContent = (content) => {
@@ -158,6 +161,7 @@ abstract class ContentManager<T> {
                     );
                 }
             }
+            this.originalOrder = [...this.content];
             this.renderContent();
         }
     }
@@ -178,15 +182,37 @@ abstract class ContentManager<T> {
     }
 
     moveContentUp = (content: Content<T>, contentNode: HTMLDivElement): void => {
-        this.contentListElement.insertBefore(contentNode, contentNode.previousSibling)
+        let index = this.content.indexOf(content);
+        if (index > 0) {
+            this.content.splice(index, 1);
+            this.content.splice(index - 1, 0, content);
+            this.contentListElement.insertBefore(contentNode, contentNode.previousSibling);
+        }
+        console.log(this.content);
     }
 
     moveContentDown = (content: Content<T>, contentNode: HTMLDivElement) => {
-        this.contentListElement.insertBefore(contentNode.nextSibling, contentNode)
+        let index = this.content.indexOf(content);
+        if (index < this.content.length) {
+            this.content.splice(index, 1);
+            this.content.splice(index + 1, 0, content);
+            this.contentListElement.insertBefore(contentNode.nextSibling, contentNode);
+        }
     }
 
-    deleteContent = (content: Content<T>) => {
-        console.log("delete")
+    deleteContent = (content: Content<T>, contentNode: HTMLDivElement) => {
+        let index = this.content.indexOf(content);
+        if (index > -1) {
+            let a: any;
+            console.log(this.contentListElement.scrollHeight);
+            this.content.splice(index, 1);
+            this.contentListElement.removeChild(contentNode);
+            this.contentListElement.style.height = `${0}px`;
+
+            // this.contentListElement.style.height = `${
+            //     Array.from(this.contentListElement).map()
+            // }px`;
+        }
     }
 
     undoContent = (content: Content<T>) => {
