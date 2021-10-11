@@ -49,35 +49,47 @@ class Content<T extends { [key: string]: any }> {
     private readonly signal: Callable;
     private master: ContentManager<T>;
     private content: T;
-    private contentElements: {[key: string]: HTMLInputElement|HTMLTextAreaElement};
+    private contentElements: { [key: string]: HTMLInputElement | HTMLTextAreaElement };
 
-    constructor(content: T, template: string, signal: Callable) {
+    constructor(content: T, template: string, master: ContentManager<T>) {
         this.original = {...content};
         this.content = content;
         this.template = template;
-        this.signal = signal;
+        this.master = master;
         this.contentElements = {};
     }
 
-    private addListener = (element: HTMLInputElement|HTMLTextAreaElement, key: string): void =>  {
+    private addListener = (element: HTMLInputElement | HTMLTextAreaElement, key: string): void => {
         element.addEventListener("input", () => {
             // @ts-ignore
             this.content[key] = element.value;
-            this.signal();
+            this.master.changed();
         })
     }
 
     render = () => {
         let contentNode = <HTMLDivElement>render(this.template, this.content);
-        let element: HTMLInputElement|HTMLTextAreaElement;
-        let moveUpElement, undoElement, deleteElement, moveDownElement: HTMLElement;
+        let element: HTMLInputElement | HTMLTextAreaElement;
+
+        contentNode.querySelector(".move-up-button").addEventListener("click", () => {
+            this.master.moveContentUp(this);
+        });
+
+        contentNode.querySelector(".move-down-button").addEventListener("click", () => {
+            this.master.moveContentDown(this);
+        });
+
+        contentNode.querySelector(".undo-button").addEventListener("click", () => {
+            this.master.undoContent(this);
+        });
+
+        contentNode.querySelector(".delete-button").addEventListener("click", () => {
+            this.master.deleteContent(this);
+        });
 
         for (const contentKey in this.content) {
-            element = <HTMLInputElement|HTMLTextAreaElement>contentNode.querySelector(`[name=${contentKey}]`);
-            moveUpElement = element.querySelector(".move-up-button");
-            moveDownElement = element.querySelector(".move-down-button");
-            undoElement = element.querySelector(".undo-button");
-            deleteElement = element.querySelector(".delete-button");
+            element = <HTMLInputElement | HTMLTextAreaElement>contentNode.querySelector(`[name=${contentKey}]`);
+
 
             if (element) {
                 if (element instanceof HTMLTextAreaElement) {
@@ -121,7 +133,7 @@ abstract class ContentManager<T> {
     }
 
     createContent = (content) => {
-        return new Content<T>(content, this.contentTemplate, this.changed);
+        return new Content<T>(content, this.contentTemplate, this);
     }
 
     getRequest = async () => {
@@ -164,6 +176,22 @@ abstract class ContentManager<T> {
             }
         }
         return false;
+    }
+
+    moveContentUp = (content: Content<T>): void => {
+        console.log("move up")
+    }
+
+    moveContentDown = (content: Content<T>) => {
+        console.log("move down")
+    }
+
+    deleteContent = (content: Content<T>) => {
+        console.log("delete")
+    }
+
+    undoContent = (content: Content<T>) => {
+        console.log("undo")
     }
 
     revertAllChanges = () => {
