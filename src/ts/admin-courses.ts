@@ -46,7 +46,6 @@ class Toggle {
 class Content<T extends { [key: string]: any }> {
     private readonly template;
     private readonly original: T;
-    private readonly signal: Callable;
     private master: ContentManager<T>;
     private content: T;
     private contentElements: { [key: string]: HTMLInputElement | HTMLTextAreaElement };
@@ -72,11 +71,11 @@ class Content<T extends { [key: string]: any }> {
         let element: HTMLInputElement | HTMLTextAreaElement;
 
         contentNode.querySelector(".move-up-button").addEventListener("click", () => {
-            this.master.moveContentUp(this);
+            this.master.moveContentUp(this, contentNode);
         });
 
         contentNode.querySelector(".move-down-button").addEventListener("click", () => {
-            this.master.moveContentDown(this);
+            this.master.moveContentDown(this, contentNode);
         });
 
         contentNode.querySelector(".undo-button").addEventListener("click", () => {
@@ -122,14 +121,14 @@ abstract class ContentManager<T> {
     private readonly endpoint: string;
     private readonly contentTemplate: string;
 
-    private resultListElement: HTMLDivElement;
+    private contentListElement: HTMLDivElement;
     private content: Content<T>[];
 
     constructor(token: string, endpoint: string, contentTemplate: string, resultListElement: HTMLDivElement) {
         this.token = token;
         this.endpoint = endpoint;
         this.contentTemplate = contentTemplate;
-        this.resultListElement = resultListElement;
+        this.contentListElement = resultListElement;
     }
 
     createContent = (content) => {
@@ -137,7 +136,7 @@ abstract class ContentManager<T> {
     }
 
     getRequest = async () => {
-        this.resultListElement.innerHTML = "";
+        this.contentListElement.innerHTML = "";
         let [initialResponse, initialStatus]: [ApiGetResponse<T>, number] = await requestEndpoint(
             this.endpoint, this.token
         );
@@ -165,7 +164,7 @@ abstract class ContentManager<T> {
 
     renderContent = () => {
         for (const contentElement of this.content) {
-            this.resultListElement.appendChild(contentElement.render());
+            this.contentListElement.appendChild(contentElement.render());
         }
     }
 
@@ -178,12 +177,12 @@ abstract class ContentManager<T> {
         return false;
     }
 
-    moveContentUp = (content: Content<T>): void => {
-        console.log("move up")
+    moveContentUp = (content: Content<T>, contentNode: HTMLDivElement): void => {
+        this.contentListElement.insertBefore(contentNode, contentNode.previousSibling)
     }
 
-    moveContentDown = (content: Content<T>) => {
-        console.log("move down")
+    moveContentDown = (content: Content<T>, contentNode: HTMLDivElement) => {
+        this.contentListElement.insertBefore(contentNode.nextSibling, contentNode)
     }
 
     deleteContent = (content: Content<T>) => {
