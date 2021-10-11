@@ -22,7 +22,7 @@ export const shake = (element: HTMLElement, duration: number = 500) => {
  * @param course: Errors from a request where courses should have been given by a successful request.
  * @param errorElement: HTMLParagraphElement to write the errors to
  */
-export const writeErrors = (course: Course, errorElement: HTMLParagraphElement) => {
+export const writeErrors = (course: any, errorElement: HTMLParagraphElement) => {
     let errors: string[] = [];
     for (const attribute in course) {
         errors.push(`${translate[attribute]}: ${course[attribute].join(" ")} `);

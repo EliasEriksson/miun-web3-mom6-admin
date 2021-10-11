@@ -8,7 +8,7 @@ include_once __DIR__ . "/src/xrender.php";
 <head>
     <?php include "$rootPath/templates/php/head.php"; ?>
     <script src="js/auto-grow-textarea.js" defer></script>
-    <script src="js/admin-courses.js" defer></script>
+    <script src="js/admin-courses.js" type="module"></script>
     <title>Admin</title>
 </head>
 <body>
@@ -16,15 +16,22 @@ include_once __DIR__ . "/src/xrender.php";
 <div class="main-wrapper">
     <main>
         <h1>Admin</h1>
-        <section class="course-section">
-            <div class="section-heading">
-                <?= render("$rootPath/templates/html/toggle.html", [
+        <section>
+            <div class="section-controls">
+                <div>
+                    <?= render("$rootPath/templates/html/toggle.html", [
                         "id" => "course-expand-button"
-                ]) ?>
-                <h2>Kurser</h2>
-                <?= render("$rootPath/templates/html/plus.html", [
+                    ]) ?>
+                    <h2>Kurser</h2>
+                </div>
+                <div>
+                    <?= render("$rootPath/templates/html/apply.html", [
+                        "id" => "apply-courses"
+                    ]); ?>
+                    <?= render("$rootPath/templates/html/plus.html", [
                         "id" => "add-course"
-                ]) ?>
+                    ]) ?>
+                </div>
             </div>
             <div id="course-list">
                 <div class="form-wrapper">
@@ -134,10 +141,42 @@ include_once __DIR__ . "/src/xrender.php";
             </div>
         </section>
         <section>
-            <h2>Jobs</h2>
+            <div class="section-controls">
+                <div>
+                    <?= render("$rootPath/templates/html/toggle.html", [
+                            "id" => "job-expand-button"
+                    ])?>
+                    <h2>Jobs</h2>
+                </div>
+                <div>
+                    <?= render("$rootPath/templates/html/apply.html", [
+                        "id" => "apply-jobs"
+                    ]); ?>
+                    <?= render("$rootPath/templates/html/plus.html", [
+                        "id" => "add-job"
+                    ]) ?>
+                </div>
+            </div>
+            <div id="job-list"></div>
         </section>
         <section>
-            <h2>Webbplatser</h2>
+            <div class="section-controls">
+                <div>
+                    <?= render("$rootPath/templates/html/toggle.html", [
+                        "id" => "webpage-expand-button"
+                    ])?>
+                    <h2>Webbplatser</h2>
+                </div>
+                <div>
+                    <?= render("$rootPath/templates/html/apply.html", [
+                        "id" => "apply-webpages"
+                    ]); ?>
+                    <?= render("$rootPath/templates/html/plus.html", [
+                        "id" => "add-webpage"
+                    ]) ?>
+                </div>
+            </div>
+            <div id="webpage-list"></div>
         </section>
     </main>
 </div>

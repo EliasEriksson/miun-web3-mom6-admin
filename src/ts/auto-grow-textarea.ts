@@ -13,6 +13,7 @@ class AutoGrowTextarea {
     }
 
     resize = () => {
+        console.log("triggered")
         this.textArea.style.height = `${this.init}px`;
         let height = Math.max(
             this.init, (this.textArea.scrollHeight + this.extra)
@@ -22,11 +23,11 @@ class AutoGrowTextarea {
 }
 
 
-window.addEventListener("load", () => {
-    let textAreas = document.getElementsByClassName("auto-grow");
-    let autoGrowTextAreas = Array.from(textAreas).map(
-        (textAreaElement: HTMLTextAreaElement) => {
-            return new AutoGrowTextarea(textAreaElement);
-        }
-    );
-})
+// window.addEventListener("load", () => {
+//     let textAreas = document.getElementsByClassName("auto-grow");
+//     let autoGrowTextAreas = Array.from(textAreas).map(
+//         (textAreaElement: HTMLTextAreaElement) => {
+//             return new AutoGrowTextarea(textAreaElement);
+//         }
+//     );
+// })

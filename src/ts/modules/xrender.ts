@@ -13,7 +13,7 @@
  * @param context originally a JSON object. Must have keys matching each {{ variable }} in the template
  * @returns ChildNode
  */
-export function render(template: string, context: {[key: string]: string}): ChildNode|null {
+export function render(template: string, context: {[key: string]: any}): ChildNode|null {
     for (let variable in context) {
         template = template.replace(new RegExp(`{{\\s*${variable}\\s*}}`, "gm"), context[variable]);
     }

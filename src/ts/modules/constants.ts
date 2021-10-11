@@ -4,6 +4,15 @@ export const translate = {
 
 }
 
+
+export type ApiGetResponse<T> = {
+    count: number,
+    next: string|null,
+    previous: string|null,
+    results: T[]
+}
+
+
 export type RequestMethods = "GET" | "POST" | "PUT" | "DELETE";
 
 export type Course = {
@@ -13,7 +22,7 @@ export type Course = {
     credit: number,
     startDate: Date,
     endDate: Date
-}
+} & {[key: string]: string};
 
 export type Job = {
     id: number,
@@ -21,14 +30,17 @@ export type Job = {
     title: string,
     startDate: Date,
     endDate: Date
-}
+} & {[key: string]: string};
 
 export type WebPage = {
     id: number,
     title: string,
     description: string,
     url: string
-}
+} & {[key: string]: string};
+
+export type ContentType = Course|Job|WebPage;
+
 
 export const _ = "";
 

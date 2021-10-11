@@ -67,21 +67,39 @@ body {
   }
 }
 
-.course-section {
+section {
   display: flex;
   flex-direction: column;
 
-  .section-heading {
+  margin-top: 20px;
+
+  .section-controls {
     display: flex;
     align-items: center;
     justify-content: space-between;
     width: 100%;
+    > div {
+      display: flex;
+      gap: 1ch;
+    }
   }
 
   #course-list {
     height: 0;
     overflow: hidden;
-    transition: height 1s ease-out;
+    transition: height 1s ease;
+  }
+
+  #job-list {
+    height: 0;
+    overflow: hidden;
+    transition: height 1s ease;
+  }
+
+  #webpage-list {
+    height: 0;
+    overflow: hidden;
+    transition: height 1s ease;
   }
 }
 
