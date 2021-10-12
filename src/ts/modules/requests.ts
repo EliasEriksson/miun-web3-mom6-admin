@@ -1,4 +1,4 @@
-import {apiURL, RequestMethods} from "./constants.js";
+import {ApiEndpoint, apiURL, RequestMethods} from "./constants.js";
 
 /**
  * requests an api key for a specific user.
@@ -34,7 +34,7 @@ export const requestEndpoint = async (
     endpoint: string,
     token: string|null,
     method: RequestMethods = "GET",
-    data: object|undefined = undefined): Promise<[any, number]> => {
+    data: {[key: string]: any}|undefined = undefined): Promise<[any, number]> => {
     let init: RequestInit = {
         method: method,
         headers: {

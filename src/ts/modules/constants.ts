@@ -45,6 +45,8 @@ export type WebPage = {
 export type ContentType = Course|Job|WebPage;
 
 
+export type ApiEndpoint = "courses/" | "jobs/" | "webpages/";
+
 export const _ = "";
 
 export type Callable = (...any) => any;

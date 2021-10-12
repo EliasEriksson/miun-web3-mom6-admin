@@ -1,5 +1,5 @@
 import {requestEndpoint, requestTemplate} from "./modules/requests.js";
-import {ApiGetResponse, Course, Job, WebPage} from "./modules/constants.js";
+import {ApiEndpoint, ApiGetResponse, Callable, Course, Job, WebPage} from "./modules/constants.js";
 import {render} from "./modules/xrender.js";
 import {autoGrow} from "./modules/triggers.js";
 
@@ -25,9 +25,7 @@ class Toggle {
 
     toggleOff = () => {
         if (this.on) {
-            setTimeout(() => {
-                this.htmlElement.classList.remove("rotate-90deg");
-            }, 800);
+            this.htmlElement.classList.remove("rotate-90deg");
             this.toggleHtmlElement.style.height = `${0}px`;
             this.on = false;
         }
@@ -57,11 +55,11 @@ class Content<T extends { [key: string]: any }> {
         this.contentElements = {};
     }
 
-    private addInputListener = (element: HTMLInputElement | HTMLTextAreaElement, key: string): void => {
+    private addInputListener = (contentNode: HTMLDivElement, element: HTMLInputElement | HTMLTextAreaElement, key: string): void => {
         element.addEventListener("input", () => {
             // @ts-ignore
             this.content[key] = element.value;
-            this.master.changed();
+            this.master.editContent(this);
         })
     }
 
@@ -78,24 +76,23 @@ class Content<T extends { [key: string]: any }> {
         });
 
         contentNode.querySelector(".undo-button").addEventListener("click", () => {
-            console.log("pls revert")
             this.revertChanges();
+            this.master.undoContent(this);
         });
 
         contentNode.querySelector(".delete-button").addEventListener("click", () => {
             this.master.deleteContent(this, contentNode);
         });
 
-        for (const contentKey in this.content) {
-            element = <HTMLInputElement | HTMLTextAreaElement>contentNode.querySelector(`[name=${contentKey}]`);
-
-
+        for (const key in this.content) {
+            element = <HTMLInputElement | HTMLTextAreaElement>contentNode.querySelector(`[name=${key}]`);
             if (element) {
                 if (element instanceof HTMLTextAreaElement) {
                     autoGrow(element);
                 }
-                this.contentElements[contentKey] = element;
-                this.addInputListener(element, contentKey);
+                this.contentElements[key] = element;
+
+                this.addInputListener(contentNode, element, key);
             }
         }
         return contentNode;
@@ -126,24 +123,37 @@ class Content<T extends { [key: string]: any }> {
         // @ts-ignore
         this.content.order = order;
     }
+
+    getContent = (): T => {
+        return {...this.content};
+    }
+
+    getID = (): number => {
+        // @ts-ignore
+        console.log(this.content.id)
+        return this.content.id;
+    }
 }
 
 abstract class ContentManager<T> {
-    private readonly token: string;
-    private readonly endpoint: string;
+    protected readonly token: string;
+    protected readonly endpoint: ApiEndpoint;
     private readonly contentTemplate: string;
+
+    private syncRequests: Map<Content<T>, Callable>;
 
     protected contentListElement: HTMLDivElement;
     private originalOrder: Content<T>[];
     protected content: Content<T>[];
 
-    constructor(token: string, endpoint: string, contentTemplate: string, resultListElement: HTMLDivElement) {
+    constructor(token: string, endpoint: ApiEndpoint, contentTemplate: string, resultListElement: HTMLDivElement) {
         this.token = token;
         this.endpoint = endpoint;
         this.contentTemplate = contentTemplate;
         this.contentListElement = resultListElement;
         this.content = [];
         this.originalOrder = [];
+        this.syncRequests = new Map();
     }
 
     public abstract addContent(): void;
@@ -158,9 +168,8 @@ abstract class ContentManager<T> {
             this.endpoint, this.token
         );
         if (200 <= initialStatus && initialStatus < 300) {
-            this.content = initialResponse.results.map(result => {
-                return this.createContent(result)
-            });
+            this.content = initialResponse.results.map(result => this.createContent(result));
+
             if (initialResponse.next) {
                 let nextURL = new URL(initialResponse.next);
                 let limit = parseInt(nextURL.searchParams.get("limit"));
@@ -170,7 +179,9 @@ abstract class ContentManager<T> {
                 if (200 <= followupStatus && followupStatus < 300) {
                     this.content.push(
                         ...followupResponse.results.map(
-                            result => this.createContent(result)
+                            result => {
+                                return this.createContent(result);
+                            }
                         )
                     );
                 }
@@ -180,13 +191,40 @@ abstract class ContentManager<T> {
         }
     }
 
+    setSyncRequest = (content: Content<T>, request: Callable) => {
+        if (!this.syncRequests.has(content)) {
+            this.syncRequests.set(content, request);
+        }
+    }
+
+    removeSyncRequest = (content: Content<T>) => {
+        if (this.syncRequests.has(content)) {
+            this.syncRequests.delete(content);
+        }
+    }
+
     syncRequest = async () => {
+        this.content.forEach((content, index) => {
+            if (content.getOrder() !== index) {
+                content.setOrder(index);
+                this.setSyncRequest(content, async () => {
+                    await requestEndpoint(`${this.endpoint}${content.getID()}/`, this.token, "PUT", content.getContent());
+                });
+            }
+        });
+
+
+
+        for await (let [, request] of this.syncRequests) {
+            console.log(request)
+            await request();
+        }
 
     }
 
     renderContent = () => {
-        for (const contentElement of this.content) {
-            this.contentListElement.appendChild(contentElement.render());
+        for (const content of this.content) {
+            this.contentListElement.appendChild(content.render());
         }
     }
 
@@ -231,8 +269,8 @@ abstract class ContentManager<T> {
         let index = this.content.indexOf(content);
         if (index > -1) {
             let currentHeight = this.contentListElement.scrollHeight;
+            let newHeight;
 
-            let newHeight: number;
             if (this.content.length === 1) {
                 newHeight = 0;
             } else {
@@ -245,15 +283,26 @@ abstract class ContentManager<T> {
                 })) / this.content.length;
                 newHeight = currentHeight - this.contentListElement.children[index].scrollHeight - margin;
             }
-
             this.content.splice(index, 1);
             this.contentListElement.removeChild(contentNode);
             this.contentListElement.style.height = `${newHeight}px`;
+
+            this.setSyncRequest(content, async () => {
+                await requestEndpoint(`${this.endpoint}${content.getID()}/`, this.token, "DELETE", content.getContent());
+            })
+        }
+    }
+
+    editContent = (content: Content<T>) => {
+        if (content.changed()) {
+            this.setSyncRequest(content, async () => {
+                await requestEndpoint(`${this.endpoint}${content.getID()}/`, this.token, "PUT", content.getContent());
+            })
         }
     }
 
     undoContent = (content: Content<T>) => {
-        console.log("undo")
+        this.removeSyncRequest(content);
     }
 
     revertAllChanges = () => {
@@ -261,6 +310,7 @@ abstract class ContentManager<T> {
             contentElement.revertChanges();
         }
     }
+
 }
 
 class CourseContentManager extends ContentManager<Course> {
@@ -278,7 +328,10 @@ class CourseContentManager extends ContentManager<Course> {
         let contentNode = content.render();
         this.content.splice(0, 0, content);
         this.contentListElement.insertBefore(contentNode, this.contentListElement.firstChild);
-        console.log(this.content)
+        this.setSyncRequest(content, async () => {
+            await requestEndpoint(this.endpoint, this.token, "POST", content.getContent())
+        });
+        this.contentListElement.style.height = `${this.contentListElement.scrollHeight}px`;
     }
 
     static create = async (token: string): Promise<CourseContentManager> => {
@@ -305,6 +358,10 @@ class JobContentManager extends ContentManager<Job> {
         let contentNode = content.render();
         this.content.splice(0, 0, content);
         this.contentListElement.insertBefore(contentNode, this.contentListElement.firstChild);
+        this.setSyncRequest(content, async () => {
+            await requestEndpoint(this.endpoint, this.token, "POST", content.getContent())
+        });
+        this.contentListElement.style.height = `${this.contentListElement.scrollHeight}px`;
     }
 
     static create = async (token: string): Promise<JobContentManager> => {
@@ -328,6 +385,10 @@ class WebPageContentManager extends ContentManager<WebPage> {
         let contentNode = content.render();
         this.content.splice(0, 0, content);
         this.contentListElement.insertBefore(contentNode, this.contentListElement.firstChild);
+        this.setSyncRequest(content, async () => {
+            await requestEndpoint(this.endpoint, this.token, "POST", content.getContent())
+        });
+        this.contentListElement.style.height = `${this.contentListElement.scrollHeight}px`;
     }
 
     static create = async (token: string): Promise<WebPageContentManager> => {
@@ -343,6 +404,10 @@ window.addEventListener("load", async () => {
     const addCourseElement = document.getElementById("add-course");
     const addJobElement = document.getElementById("add-job");
     const addWebPage = document.getElementById("add-webpage");
+
+    const commitCourseChangesElement = document.getElementById("apply-courses");
+    const commitJobChangesElement = document.getElementById("apply-jobs");
+    const commitWebPageChangesElement = document.getElementById("apply-webpages");
 
     let courseToggle = new Toggle(
         document.getElementById("course-expand-button"),
@@ -385,14 +450,22 @@ window.addEventListener("load", async () => {
         courseToggle.toggleOn();
         courseContentManager.addContent();
     });
+    commitCourseChangesElement.addEventListener("click", async () => {
+        await courseContentManager.syncRequest();
+    });
     addJobElement.addEventListener("click", () => {
         jobToggle.toggleOn();
         jobContentManager.addContent();
+    });
+    commitJobChangesElement.addEventListener("click", async () => {
+        await jobContentManager.syncRequest();
     });
     addWebPage.addEventListener("click", () => {
         webPageToggle.toggleOn();
         webPageContentManager.addContent();
     });
+    commitWebPageChangesElement.addEventListener("click", async () => {
+        await webPageContentManager.syncRequest();
+    });
 });
-
 
