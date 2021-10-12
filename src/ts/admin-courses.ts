@@ -130,7 +130,6 @@ class Content<T extends { [key: string]: any }> {
 
     getID = (): number => {
         // @ts-ignore
-        console.log(this.content.id)
         return this.content.id;
     }
 }
@@ -216,7 +215,6 @@ abstract class ContentManager<T> {
 
 
         for await (let [, request] of this.syncRequests) {
-            console.log(request)
             await request();
         }
 
