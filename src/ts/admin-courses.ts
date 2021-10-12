@@ -1,5 +1,5 @@
 import {requestEndpoint, requestTemplate} from "./modules/requests.js";
-import {ApiGetResponse, Course, Callable, Job, WebPage} from "./modules/constants.js";
+import {ApiGetResponse, Course, Job, WebPage} from "./modules/constants.js";
 import {render} from "./modules/xrender.js";
 import {autoGrow} from "./modules/triggers.js";
 
@@ -42,7 +42,6 @@ class Toggle {
     }
 }
 
-
 class Content<T extends { [key: string]: any }> {
     private readonly template;
     private readonly original: T;
@@ -58,7 +57,7 @@ class Content<T extends { [key: string]: any }> {
         this.contentElements = {};
     }
 
-    private addListener = (element: HTMLInputElement | HTMLTextAreaElement, key: string): void => {
+    private addInputListener = (element: HTMLInputElement | HTMLTextAreaElement, key: string): void => {
         element.addEventListener("input", () => {
             // @ts-ignore
             this.content[key] = element.value;
@@ -79,7 +78,8 @@ class Content<T extends { [key: string]: any }> {
         });
 
         contentNode.querySelector(".undo-button").addEventListener("click", () => {
-            this.master.undoContent(this);
+            console.log("pls revert")
+            this.revertChanges();
         });
 
         contentNode.querySelector(".delete-button").addEventListener("click", () => {
@@ -95,7 +95,7 @@ class Content<T extends { [key: string]: any }> {
                     autoGrow(element);
                 }
                 this.contentElements[contentKey] = element;
-                this.addListener(element, contentKey);
+                this.addInputListener(element, contentKey);
             }
         }
         return contentNode;
@@ -109,21 +109,33 @@ class Content<T extends { [key: string]: any }> {
         if (Object.keys(this.contentElements).length) {
             for (const key in this.contentElements) {
                 // @ts-ignore
-                this.contentElement[key].value = this.original[key];
+                this.contentElements[key].value = this.original[key];
             }
         }
     }
-}
 
+    equals = (other: Content<T>) => {
+        return JSON.stringify(this.content) === JSON.stringify(other.content)
+    }
+
+    getOrder = (): number => {
+        return this.content.order;
+    }
+
+    setOrder = (order: number): void => {
+        // @ts-ignore
+        this.content.order = order;
+    }
+}
 
 abstract class ContentManager<T> {
     private readonly token: string;
     private readonly endpoint: string;
     private readonly contentTemplate: string;
 
-    private contentListElement: HTMLDivElement;
+    protected contentListElement: HTMLDivElement;
     private originalOrder: Content<T>[];
-    private content: Content<T>[];
+    protected content: Content<T>[];
 
     constructor(token: string, endpoint: string, contentTemplate: string, resultListElement: HTMLDivElement) {
         this.token = token;
@@ -134,7 +146,9 @@ abstract class ContentManager<T> {
         this.originalOrder = [];
     }
 
-    createContent = (content) => {
+    public abstract addContent(): void;
+
+    createContent = (content: T) => {
         return new Content<T>(content, this.contentTemplate, this);
     }
 
@@ -166,6 +180,10 @@ abstract class ContentManager<T> {
         }
     }
 
+    syncRequest = async () => {
+
+    }
+
     renderContent = () => {
         for (const contentElement of this.content) {
             this.contentListElement.appendChild(contentElement.render());
@@ -173,10 +191,20 @@ abstract class ContentManager<T> {
     }
 
     changed = (): boolean => {
-        for (const contentElement of this.content) {
-            if (contentElement.changed()) {
-                return true;
+        if (this.content.length === this.originalOrder.length) {
+            for (let i = 0; i < this.content.length; i++) {
+                if (this.content[i].changed()) {
+                    return true;
+                }
+                if (!this.content[i].equals(this.originalOrder[i])) {
+                    return true;
+                }
+                if (this.content[i].getOrder() !== i) {
+                    return true;
+                }
             }
+        } else {
+            return true;
         }
         return false;
     }
@@ -188,7 +216,6 @@ abstract class ContentManager<T> {
             this.content.splice(index - 1, 0, content);
             this.contentListElement.insertBefore(contentNode, contentNode.previousSibling);
         }
-        console.log(this.content);
     }
 
     moveContentDown = (content: Content<T>, contentNode: HTMLDivElement) => {
@@ -203,15 +230,25 @@ abstract class ContentManager<T> {
     deleteContent = (content: Content<T>, contentNode: HTMLDivElement) => {
         let index = this.content.indexOf(content);
         if (index > -1) {
-            let a: any;
-            console.log(this.contentListElement.scrollHeight);
+            let currentHeight = this.contentListElement.scrollHeight;
+
+            let newHeight: number;
+            if (this.content.length === 1) {
+                newHeight = 0;
+            } else {
+                let margin = (currentHeight - Array.from(
+                    this.contentListElement.children
+                ).map(
+                    child => child.scrollHeight
+                ).reduce((total, current) => {
+                    return total + current;
+                })) / this.content.length;
+                newHeight = currentHeight - this.contentListElement.children[index].scrollHeight - margin;
+            }
+
             this.content.splice(index, 1);
             this.contentListElement.removeChild(contentNode);
-            this.contentListElement.style.height = `${0}px`;
-
-            // this.contentListElement.style.height = `${
-            //     Array.from(this.contentListElement).map()
-            // }px`;
+            this.contentListElement.style.height = `${newHeight}px`;
         }
     }
 
@@ -227,6 +264,23 @@ abstract class ContentManager<T> {
 }
 
 class CourseContentManager extends ContentManager<Course> {
+    public addContent(): void {
+        let date = new Date().toISOString().substring(0, 10);
+        let content = this.createContent({
+            id: 0,
+            university: "",
+            name: "",
+            credit: 0,
+            startDate: date,
+            endDate: date,
+            order: -1
+        });
+        let contentNode = content.render();
+        this.content.splice(0, 0, content);
+        this.contentListElement.insertBefore(contentNode, this.contentListElement.firstChild);
+        console.log(this.content)
+    }
+
     static create = async (token: string): Promise<CourseContentManager> => {
         let contentTemplate = await requestTemplate("course.html");
         return new CourseContentManager(
@@ -238,6 +292,21 @@ class CourseContentManager extends ContentManager<Course> {
 }
 
 class JobContentManager extends ContentManager<Job> {
+    public addContent(): void {
+        let date = new Date().toISOString().substring(0, 10);
+        let content = this.createContent({
+            id: 0,
+            company: "",
+            title: "",
+            startDate: date,
+            endDate: date,
+            order: -1
+        });
+        let contentNode = content.render();
+        this.content.splice(0, 0, content);
+        this.contentListElement.insertBefore(contentNode, this.contentListElement.firstChild);
+    }
+
     static create = async (token: string): Promise<JobContentManager> => {
         let jobTemplate = await requestTemplate("job.html");
         return new JobContentManager(
@@ -248,6 +317,19 @@ class JobContentManager extends ContentManager<Job> {
 }
 
 class WebPageContentManager extends ContentManager<WebPage> {
+    public addContent(): void {
+        let content = this.createContent({
+            id: 0,
+            title: "",
+            description: "",
+            url: "",
+            order: -1
+        });
+        let contentNode = content.render();
+        this.content.splice(0, 0, content);
+        this.contentListElement.insertBefore(contentNode, this.contentListElement.firstChild);
+    }
+
     static create = async (token: string): Promise<WebPageContentManager> => {
         let webPageTemplate = await requestTemplate("webpage.html");
         return new WebPageContentManager(
@@ -274,22 +356,43 @@ window.addEventListener("load", async () => {
         document.getElementById("webpage-expand-button"),
         document.getElementById("webpage-list")
     );
-    addCourseElement.addEventListener("click", courseToggle.toggleOn);
-    addJobElement.addEventListener("click", jobToggle.toggleOn);
-    addWebPage.addEventListener("click", webPageToggle.toggleOn);
 
     const token = localStorage.getItem("token");
-    let courseContentManager = CourseContentManager.create(token).then(manager => {
-        return [manager, manager.getRequest()]
-    }).then(manager => manager);
+    let [courseContentManager, jobContentManager, webPageContentManager] = (await Promise.allSettled(
+        [
+            CourseContentManager.create(token).then(async manager => {
+                await manager.getRequest();
+                return manager;
+            }).then(manager => manager),
 
-    let jobContentManager = JobContentManager.create(token).then(manager => {
-        return [manager, manager.getRequest()]
-    }).then(manager => manager);
+            JobContentManager.create(token).then(async manager => {
+                await manager.getRequest()
+                return manager;
+            }).then(manager => manager),
 
-    let webPageContentManager = WebPageContentManager.create(token).then(manager => {
-        return [manager, manager.getRequest()]
-    }).then(manager => manager);
+            WebPageContentManager.create(token).then(async manager => {
+                await manager.getRequest();
+                return manager
+            }).then(manager => manager)
+        ]
+    )).map(result => {
+        if (result.status === "fulfilled") {
+            return result.value;
+        }
+    })
+
+    addCourseElement.addEventListener("click", () => {
+        courseToggle.toggleOn();
+        courseContentManager.addContent();
+    });
+    addJobElement.addEventListener("click", () => {
+        jobToggle.toggleOn();
+        jobContentManager.addContent();
+    });
+    addWebPage.addEventListener("click", () => {
+        webPageToggle.toggleOn();
+        webPageContentManager.addContent();
+    });
 });
 
 

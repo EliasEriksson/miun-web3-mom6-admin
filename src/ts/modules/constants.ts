@@ -20,24 +20,27 @@ export type Course = {
     university: string,
     name: string,
     credit: number,
-    startDate: Date,
-    endDate: Date
-} & {[key: string]: string};
+    startDate: string,
+    endDate: string,
+    order: number
+} & {[key: string]: any};
 
 export type Job = {
     id: number,
     company: string,
     title: string,
-    startDate: Date,
-    endDate: Date
-} & {[key: string]: string};
+    startDate: string,
+    endDate: string,
+    order: number
+} & {[key: string]: any};
 
 export type WebPage = {
     id: number,
     title: string,
     description: string,
-    url: string
-} & {[key: string]: string};
+    url: string,
+    order: number
+} & {[key: string]: any};
 
 export type ContentType = Course|Job|WebPage;
 
