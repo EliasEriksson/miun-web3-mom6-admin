@@ -2,6 +2,12 @@ import {requestEndpoint, requestTemplate} from "./modules/requests.js";
 import {ApiEndpoint, ApiGetResponse, Callable, Course, Job, WebPage} from "./modules/constants.js";
 import {render} from "./modules/xrender.js";
 import {autoGrow} from "./modules/triggers.js";
+import {redirect} from "./modules/redirect.js";
+
+if (!localStorage.getItem("token")) {
+    redirect("authenticate/")
+}
+
 
 class Toggle {
     private htmlElement: HTMLElement;
