@@ -48,7 +48,7 @@ class Toggle {
 
 class Content<T extends { [key: string]: any }> {
     private readonly template;
-    private readonly original: T;
+    private original: T;
     private master: ContentManager<T>;
     private content: T;
     private contentElements: { [key: string]: HTMLInputElement | HTMLTextAreaElement };
@@ -59,6 +59,10 @@ class Content<T extends { [key: string]: any }> {
         this.template = template;
         this.master = master;
         this.contentElements = {};
+    }
+
+    updateOriginal = () => {
+        this.original = {...this.content}
     }
 
     private addInputListener = (contentNode: HTMLDivElement, element: HTMLInputElement | HTMLTextAreaElement, key: string): void => {
@@ -163,16 +167,8 @@ abstract class ContentManager<T> {
         this.syncRequests = new Map();
     }
 
-    addContent = () => {
-        let content = this.createContent(this.emptyContent);
-        let contentNode = content.render();
-
-        this.content.splice(0, 0, content);
-        this.contentListElement.insertBefore(contentNode, this.contentListElement.firstChild);
-        this.setSyncRequest(content, async () => {
-            await requestEndpoint(this.endpoint, this.token, "POST", content.getContent())
-        });
-        this.contentListElement.style.height = `${this.contentListElement.scrollHeight}px`;
+    updateOriginal = () => {
+        this.originalOrder = [...this.content];
     }
 
     createContent = (content: T) => {
@@ -239,10 +235,13 @@ abstract class ContentManager<T> {
         });
 
 
-        for await (let [, request] of this.syncRequests) {
+        for await (let [content, request] of this.syncRequests) {
             await request();
+            content.updateOriginal();
+            this.removeSyncRequest(content);
         }
-
+        this.updateOriginal();
+        this.changed();
     }
 
     renderContent = () => {
@@ -255,19 +254,42 @@ abstract class ContentManager<T> {
         if (this.content.length === this.originalOrder.length) {
             for (let i = 0; i < this.content.length; i++) {
                 if (this.content[i].changed()) {
+                    console.log("1")
+                    console.log(`Have changed, ${this.syncRequests.size} requests queued.`)
                     return true;
                 }
                 if (!this.content[i].equals(this.originalOrder[i])) {
+                    console.log("2")
+                    console.log(`Have changed, ${this.syncRequests.size} requests queued.`)
                     return true;
                 }
                 if (this.content[i].getOrder() !== i) {
+                    console.log("3")
+                    console.log(`Have changed, ${this.syncRequests.size} requests queued.`)
                     return true;
                 }
             }
         } else {
+            console.log("4")
+            console.log(`Have changed, ${this.syncRequests.size} requests queued.`)
             return true;
         }
+        console.log("5")
+        console.log(`Have NOT changed, ${this.syncRequests.size} requests queued.`)
         return false;
+    }
+
+    addContent = () => {
+        let content = this.createContent(this.emptyContent);
+        let contentNode = content.render();
+
+        this.content.splice(0, 0, content);
+        this.contentListElement.insertBefore(contentNode, this.contentListElement.firstChild);
+        this.setSyncRequest(content, async () => {
+            await requestEndpoint(this.endpoint, this.token, "POST", content.getContent())
+        });
+        this.contentListElement.style.height = `${this.contentListElement.scrollHeight}px`;
+        this.changed();
     }
 
     moveContentUp = (content: Content<T>, contentNode: HTMLDivElement): void => {
@@ -277,6 +299,7 @@ abstract class ContentManager<T> {
             this.content.splice(index - 1, 0, content);
             this.contentListElement.insertBefore(contentNode, contentNode.previousSibling);
         }
+        this.changed();
     }
 
     moveContentDown = (content: Content<T>, contentNode: HTMLDivElement) => {
@@ -286,6 +309,7 @@ abstract class ContentManager<T> {
             this.content.splice(index + 1, 0, content);
             this.contentListElement.insertBefore(contentNode.nextSibling, contentNode);
         }
+        this.changed();
     }
 
     deleteContent = (content: Content<T>, contentNode: HTMLDivElement) => {
@@ -314,6 +338,7 @@ abstract class ContentManager<T> {
                 await requestEndpoint(`${this.endpoint}${content.getID()}/`, this.token, "DELETE", content.getContent());
             }, true);
         }
+        this.changed();
     }
 
     editContent = (content: Content<T>) => {
@@ -322,10 +347,12 @@ abstract class ContentManager<T> {
                 await requestEndpoint(`${this.endpoint}${content.getID()}/`, this.token, "PUT", content.getContent());
             })
         }
+        this.changed();
     }
 
     undoContent = (content: Content<T>) => {
         this.removeSyncRequest(content);
+        this.changed();
     }
 
     revertAllChanges = () => {
@@ -452,4 +479,3 @@ window.addEventListener("load", async () => {
         return manager
     });
 });
-
