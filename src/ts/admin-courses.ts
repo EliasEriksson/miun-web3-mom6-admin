@@ -1,5 +1,5 @@
 import {requestEndpoint, requestTemplate} from "./modules/requests.js";
-import {ApiEndpoint, ApiGetResponse, Callable, Course, Job, WebPage} from "./modules/constants.js";
+import {ApiEndpoint, ApiGetResponse, Callable, ContentType, Course, Job, WebPage} from "./modules/constants.js";
 import {render} from "./modules/xrender.js";
 import {autoGrow} from "./modules/triggers.js";
 import {redirect} from "./modules/redirect.js";
@@ -46,17 +46,18 @@ class Toggle {
     }
 }
 
-class Content<T extends { [key: string]: any }> {
+class Content<T extends ContentType> {
     private readonly template;
     private original: T;
     private master: ContentManager<T>;
-    private content: T;
-    private contentElements: { [key: string]: HTMLInputElement | HTMLTextAreaElement };
+    private readonly content: T;
+    private readonly contentElements: { [key: string]: HTMLInputElement | HTMLTextAreaElement };
     
     private contentNode: HTMLElement|null;
     private undoButtonElement: HTMLElement|null;
     private moveUpButtonElement: HTMLElement|null;
     private moveDownButtonElement: HTMLElement|null;
+    private errorElement: HTMLParagraphElement|null;
 
     constructor(content: T, template: string, master: ContentManager<T>) {
         this.original = {...content};
@@ -69,6 +70,7 @@ class Content<T extends { [key: string]: any }> {
         this.undoButtonElement = null;
         this.moveUpButtonElement = null;
         this.moveDownButtonElement = null;
+        this.errorElement = null;
     }
 
     updateOriginal = () => {
@@ -77,7 +79,6 @@ class Content<T extends { [key: string]: any }> {
 
     private addInputListener = (contentNode: HTMLDivElement, element: HTMLInputElement | HTMLTextAreaElement, key: string): void => {
         element.addEventListener("input", () => {
-            // @ts-ignore
             this.content[key] = element.value;
             this.master.editContent(this);
             this.toggleUndo();
@@ -121,13 +122,15 @@ class Content<T extends { [key: string]: any }> {
     }
 
     scrollTo = () => {
-        window.scrollTo(window.scrollX, this.contentNode.offsetTop);
+        let space = (window.innerHeight - this.contentNode.scrollHeight) / 2;
+        window.scrollTo(window.scrollX, this.contentNode.offsetTop - space);
     }
 
     render = () => {
         let contentNode = <HTMLDivElement>render(this.template, this.content);
         let element: HTMLInputElement | HTMLTextAreaElement;
         this.contentNode = contentNode;
+        this.errorElement = <HTMLParagraphElement>contentNode.querySelector(".error");
         this.undoButtonElement = <HTMLElement>contentNode.querySelector(".undo-button");
         this.moveUpButtonElement = <HTMLElement>contentNode.querySelector(".move-up-button");
         this.moveDownButtonElement = <HTMLElement>contentNode.querySelector(".move-down-button");
@@ -164,6 +167,7 @@ class Content<T extends { [key: string]: any }> {
                 this.addInputListener(contentNode, element, key);
             }
         }
+
         return contentNode;
     }
 
@@ -174,7 +178,6 @@ class Content<T extends { [key: string]: any }> {
     revertChanges = () => {
         if (Object.keys(this.contentElements).length) {
             for (const key in this.contentElements) {
-                // @ts-ignore
                 this.contentElements[key].value = this.original[key];
             }
         }
@@ -189,7 +192,6 @@ class Content<T extends { [key: string]: any }> {
     }
 
     setOrder = (order: number): void => {
-        // @ts-ignore
         this.content.order = order;
     }
 
@@ -198,17 +200,15 @@ class Content<T extends { [key: string]: any }> {
     }
 
     getID = (): number => {
-        // @ts-ignore
         return this.content.id;
     }
 
     setID = (id: number) => {
-        // @ts-ignore
         this.content.id = id;
     }
 }
 
-abstract class ContentManager<T> {
+abstract class ContentManager<T extends ContentType> {
     protected abstract emptyContent: T;
 
     protected readonly token: string;
@@ -268,7 +268,6 @@ abstract class ContentManager<T> {
             this.renderContent();
             this.toggleMoveButtons();
             this.originalOrder = [...this.content];
-
         }
     }
 
@@ -383,9 +382,11 @@ abstract class ContentManager<T> {
         this.setSyncRequest(content, async () => {
             let [response, status]: [T, number] = await requestEndpoint(this.endpoint, this.token, "POST", content.getContent());
             if (200 <= status && status < 300) {
-                // @ts-ignore
                 content.setID(response.id);
+            } else {
+
             }
+
         });
         this.contentListElement.style.height = `${this.contentListElement.scrollHeight}px`;
 

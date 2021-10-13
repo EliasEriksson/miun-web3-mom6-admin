@@ -16,14 +16,14 @@ export type ApiGetResponse<T> = {
 export type RequestMethods = "GET" | "POST" | "PUT" | "DELETE";
 
 export type Course = {
-    "id": number,
+    id: number,
     university: string,
     name: string,
     credit: number,
     startDate: string,
     endDate: string,
     order: number
-} & {[key: string]: any};
+}// & {[key: string]: any};
 
 export type Job = {
     id: number,
@@ -32,7 +32,7 @@ export type Job = {
     startDate: string,
     endDate: string,
     order: number
-} & {[key: string]: any};
+}// & {[key: string]: any};
 
 export type WebPage = {
     id: number,
@@ -40,7 +40,7 @@ export type WebPage = {
     description: string,
     url: string,
     order: number
-} & {[key: string]: any};
+}// & {[key: string]: any};
 
 export type ContentType = Course|Job|WebPage;
 

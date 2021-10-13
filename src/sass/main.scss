@@ -41,6 +41,11 @@ body {
     row-gap: 10px;
     margin: 10px;
   }
+
+  .error {
+    grid-column: 1 / 3;
+    padding: 10px;
+  }
 }
 
 .course-form {
