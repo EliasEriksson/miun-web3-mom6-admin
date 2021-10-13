@@ -53,12 +53,20 @@ class Content<T extends { [key: string]: any }> {
     private content: T;
     private contentElements: { [key: string]: HTMLInputElement | HTMLTextAreaElement };
 
+    private undoButtonElement: HTMLElement|null;
+    private moveUpButtonElement: HTMLElement|null;
+    private moveDownButtonElement: HTMLElement|null;
+
     constructor(content: T, template: string, master: ContentManager<T>) {
         this.original = {...content};
         this.content = content;
         this.template = template;
         this.master = master;
         this.contentElements = {};
+
+        this.undoButtonElement = null;
+        this.moveUpButtonElement = null;
+        this.moveDownButtonElement = null;
     }
 
     updateOriginal = () => {
@@ -70,28 +78,72 @@ class Content<T extends { [key: string]: any }> {
             // @ts-ignore
             this.content[key] = element.value;
             this.master.editContent(this);
+            this.toggleUndo();
         })
+    }
+
+    toggleUndo = () => {
+        if (this.changed()) {
+            if (this.undoButtonElement.classList.contains("disabled")) {
+                this.undoButtonElement.classList.remove("disabled");
+            }
+        } else {
+            if (!this.undoButtonElement.classList.contains("disabled")) {
+                this.undoButtonElement.classList.add("disabled");
+            }
+        }
+    }
+
+    hideMoveUp = () => {
+        if (!this.moveUpButtonElement.classList.contains("invisible")) {
+            this.moveUpButtonElement.classList.add("invisible");
+        }
+    }
+
+    showMoveUp = () => {
+        if (this.moveUpButtonElement.classList.contains("invisible")) {
+            this.moveUpButtonElement.classList.remove("invisible");
+        }
+    }
+
+    hideMoveDown = () => {
+        if (!this.moveDownButtonElement.classList.contains("invisible")) {
+            this.moveDownButtonElement.classList.add("invisible");
+        }
+    }
+
+    showMoveDown = () => {
+        if (this.moveDownButtonElement.classList.contains("invisible")) {
+            this.moveDownButtonElement.classList.remove("invisible");
+        }
     }
 
     render = () => {
         let contentNode = <HTMLDivElement>render(this.template, this.content);
         let element: HTMLInputElement | HTMLTextAreaElement;
+        this.undoButtonElement = <HTMLElement>contentNode.querySelector(".undo-button");
+        this.moveUpButtonElement = <HTMLElement>contentNode.querySelector(".move-up-button");
+        this.moveDownButtonElement = <HTMLElement>contentNode.querySelector(".move-down-button");
 
-        contentNode.querySelector(".move-up-button").addEventListener("click", () => {
-            this.master.moveContentUp(this, contentNode);
-        });
-
-        contentNode.querySelector(".move-down-button").addEventListener("click", () => {
-            this.master.moveContentDown(this, contentNode);
-        });
-
-        contentNode.querySelector(".undo-button").addEventListener("click", () => {
+        this.undoButtonElement.addEventListener("click", () => {
             this.revertChanges();
             this.master.undoContent(this);
+            this.toggleUndo();
+        });
+
+        this.moveUpButtonElement.addEventListener("click", () => {
+            this.master.moveContentUp(this, contentNode);
+            this.toggleUndo();
+        });
+
+        this.moveDownButtonElement.addEventListener("click", () => {
+            this.master.moveContentDown(this, contentNode);
+            this.toggleUndo();
         });
 
         contentNode.querySelector(".delete-button").addEventListener("click", () => {
             this.master.deleteContent(this, contentNode);
+            this.toggleUndo();
         });
 
         for (const key in this.content) {
@@ -206,8 +258,10 @@ abstract class ContentManager<T> {
                     );
                 }
             }
-            this.originalOrder = [...this.content];
             this.renderContent();
+            this.toggleMoveButtons();
+            this.originalOrder = [...this.content];
+
         }
     }
 
@@ -241,13 +295,14 @@ abstract class ContentManager<T> {
             }
         });
 
+        console.log(`requests ${this.syncRequests.size}`);
         for await (let [content, request] of this.syncRequests) {
             await request();
             content.updateOriginal();
             this.removeSyncRequest(content);
         }
         this.updateOriginal();
-        this.changed();
+        this.toggleCommit();
     }
 
     renderContent = () => {
@@ -286,22 +341,37 @@ abstract class ContentManager<T> {
     }
 
     toggleCommit = () => {
-        if (this.changed()) {
-            if (!this.commitElement.classList.contains("")) {
-                this.commitElement.classList.add("");
+        if (!this.changed()) {
+            if (!this.commitElement.classList.contains("disabled")) {
+                this.commitElement.classList.add("disabled");
             }
         } else {
-            if (this.commitElement.classList.contains("")) {
-                this.commitElement.classList.remove("");
+            if (this.commitElement.classList.contains("disabled")) {
+                this.commitElement.classList.remove("disabled");
             }
+        }
+    }
+
+    toggleMoveButtons = (content: Content<T>|null = null) => {
+        if (content !== null) {
+            content.showMoveUp();
+            content.showMoveDown();
+        }
+        if (this.content.length) {
+            this.content[0].hideMoveUp();
+            this.content[this.content.length-1].hideMoveDown();
         }
     }
 
     addContent = () => {
         let content = this.createContent(this.emptyContent);
         let contentNode = content.render();
-
         this.content.splice(0, 0, content);
+
+        this.toggleMoveButtons(content);
+        this.toggleCommit();
+
+
         this.contentListElement.insertBefore(contentNode, this.contentListElement.firstChild);
         this.setSyncRequest(content, async () => {
             let [response, status]: [T, number] = await requestEndpoint(this.endpoint, this.token, "POST", content.getContent());
@@ -311,7 +381,7 @@ abstract class ContentManager<T> {
             }
         });
         this.contentListElement.style.height = `${this.contentListElement.scrollHeight}px`;
-        this.changed();
+
     }
 
     moveContentUp = (content: Content<T>, contentNode: HTMLDivElement): void => {
@@ -320,8 +390,11 @@ abstract class ContentManager<T> {
             this.content.splice(index, 1);
             this.content.splice(index - 1, 0, content);
             this.contentListElement.insertBefore(contentNode, contentNode.previousSibling);
+
         }
-        this.changed();
+
+        this.toggleMoveButtons(content);
+        this.toggleCommit();
     }
 
     moveContentDown = (content: Content<T>, contentNode: HTMLDivElement) => {
@@ -331,7 +404,9 @@ abstract class ContentManager<T> {
             this.content.splice(index + 1, 0, content);
             this.contentListElement.insertBefore(contentNode.nextSibling, contentNode);
         }
-        this.changed();
+
+        this.toggleMoveButtons(content);
+        this.toggleCommit();
     }
 
     deleteContent = (content: Content<T>, contentNode: HTMLDivElement) => {
@@ -360,7 +435,7 @@ abstract class ContentManager<T> {
                 await requestEndpoint(`${this.endpoint}${content.getID()}/`, this.token, "DELETE", content.getContent());
             }, true);
         }
-        this.changed();
+        this.toggleCommit();
     }
 
     editContent = (content: Content<T>) => {
@@ -369,12 +444,12 @@ abstract class ContentManager<T> {
                 await requestEndpoint(`${this.endpoint}${content.getID()}/`, this.token, "PUT", content.getContent());
             })
         }
-        this.changed();
+        this.toggleCommit();
     }
 
     undoContent = (content: Content<T>) => {
         this.removeSyncRequest(content);
-        this.changed();
+        this.toggleCommit();
     }
 
     revertAllChanges = () => {
