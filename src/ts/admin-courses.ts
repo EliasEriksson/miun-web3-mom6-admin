@@ -141,11 +141,13 @@ class Content<T extends { [key: string]: any }> {
 }
 
 abstract class ContentManager<T> {
+    protected abstract emptyContent: T;
+
     protected readonly token: string;
     protected readonly endpoint: ApiEndpoint;
     private readonly contentTemplate: string;
 
-    private syncRequests: Map<Content<T>, Callable>;
+    private readonly syncRequests: Map<Content<T>, Callable>;
 
     protected contentListElement: HTMLDivElement;
     private originalOrder: Content<T>[];
@@ -161,7 +163,17 @@ abstract class ContentManager<T> {
         this.syncRequests = new Map();
     }
 
-    public abstract addContent(): void;
+    addContent = () => {
+        let content = this.createContent(this.emptyContent);
+        let contentNode = content.render();
+
+        this.content.splice(0, 0, content);
+        this.contentListElement.insertBefore(contentNode, this.contentListElement.firstChild);
+        this.setSyncRequest(content, async () => {
+            await requestEndpoint(this.endpoint, this.token, "POST", content.getContent())
+        });
+        this.contentListElement.style.height = `${this.contentListElement.scrollHeight}px`;
+    }
 
     createContent = (content: T) => {
         return new Content<T>(content, this.contentTemplate, this);
@@ -196,9 +208,17 @@ abstract class ContentManager<T> {
         }
     }
 
-    setSyncRequest = (content: Content<T>, request: Callable) => {
+    setSyncRequest = (content: Content<T>, request: Callable, force=false) => {
         if (!this.syncRequests.has(content)) {
             this.syncRequests.set(content, request);
+        } else {
+            if (force) {
+                if (content.getID()) {
+                    this.syncRequests.set(content, request);
+                } else {
+                    this.removeSyncRequest(content);
+                }
+            }
         }
     }
 
@@ -217,7 +237,6 @@ abstract class ContentManager<T> {
                 });
             }
         });
-
 
 
         for await (let [, request] of this.syncRequests) {
@@ -293,7 +312,7 @@ abstract class ContentManager<T> {
 
             this.setSyncRequest(content, async () => {
                 await requestEndpoint(`${this.endpoint}${content.getID()}/`, this.token, "DELETE", content.getContent());
-            })
+            }, true);
         }
     }
 
@@ -314,29 +333,18 @@ abstract class ContentManager<T> {
             contentElement.revertChanges();
         }
     }
-
 }
 
 class CourseContentManager extends ContentManager<Course> {
-    public addContent(): void {
-        let date = new Date().toISOString().substring(0, 10);
-        let content = this.createContent({
-            id: 0,
-            university: "",
-            name: "",
-            credit: 0,
-            startDate: date,
-            endDate: date,
-            order: -1
-        });
-        let contentNode = content.render();
-        this.content.splice(0, 0, content);
-        this.contentListElement.insertBefore(contentNode, this.contentListElement.firstChild);
-        this.setSyncRequest(content, async () => {
-            await requestEndpoint(this.endpoint, this.token, "POST", content.getContent())
-        });
-        this.contentListElement.style.height = `${this.contentListElement.scrollHeight}px`;
-    }
+    emptyContent = {
+        id: 0,
+        university: "",
+        name: "",
+        credit: 0,
+        startDate: new Date().toISOString().substring(0, 10),
+        endDate: new Date().toISOString().substring(0, 10),
+        order: -1
+    };
 
     static create = async (token: string): Promise<CourseContentManager> => {
         let contentTemplate = await requestTemplate("course.html");
@@ -349,23 +357,13 @@ class CourseContentManager extends ContentManager<Course> {
 }
 
 class JobContentManager extends ContentManager<Job> {
-    public addContent(): void {
-        let date = new Date().toISOString().substring(0, 10);
-        let content = this.createContent({
-            id: 0,
-            company: "",
-            title: "",
-            startDate: date,
-            endDate: date,
-            order: -1
-        });
-        let contentNode = content.render();
-        this.content.splice(0, 0, content);
-        this.contentListElement.insertBefore(contentNode, this.contentListElement.firstChild);
-        this.setSyncRequest(content, async () => {
-            await requestEndpoint(this.endpoint, this.token, "POST", content.getContent())
-        });
-        this.contentListElement.style.height = `${this.contentListElement.scrollHeight}px`;
+    emptyContent = {
+        id: 0,
+        company: "",
+        title: "",
+        startDate: new Date().toISOString().substring(0, 10),
+        endDate: new Date().toISOString().substring(0, 10),
+        order: -1
     }
 
     static create = async (token: string): Promise<JobContentManager> => {
@@ -378,21 +376,12 @@ class JobContentManager extends ContentManager<Job> {
 }
 
 class WebPageContentManager extends ContentManager<WebPage> {
-    public addContent(): void {
-        let content = this.createContent({
-            id: 0,
-            title: "",
-            description: "",
-            url: "",
-            order: -1
-        });
-        let contentNode = content.render();
-        this.content.splice(0, 0, content);
-        this.contentListElement.insertBefore(contentNode, this.contentListElement.firstChild);
-        this.setSyncRequest(content, async () => {
-            await requestEndpoint(this.endpoint, this.token, "POST", content.getContent())
-        });
-        this.contentListElement.style.height = `${this.contentListElement.scrollHeight}px`;
+    emptyContent = {
+        id: 0,
+        title: "",
+        description: "",
+        url: "",
+        order: -1
     }
 
     static create = async (token: string): Promise<WebPageContentManager> => {
@@ -413,63 +402,54 @@ window.addEventListener("load", async () => {
     const commitJobChangesElement = document.getElementById("apply-jobs");
     const commitWebPageChangesElement = document.getElementById("apply-webpages");
 
-    let courseToggle = new Toggle(
+    const courseToggle = new Toggle(
         document.getElementById("course-expand-button"),
         document.getElementById("course-list")
     );
-    let jobToggle = new Toggle(
+    const jobToggle = new Toggle(
         document.getElementById("job-expand-button"),
         document.getElementById("job-list")
     );
-    let webPageToggle = new Toggle(
+    const webPageToggle = new Toggle(
         document.getElementById("webpage-expand-button"),
         document.getElementById("webpage-list")
     );
 
     const token = localStorage.getItem("token");
-    let [courseContentManager, jobContentManager, webPageContentManager] = (await Promise.allSettled(
-        [
-            CourseContentManager.create(token).then(async manager => {
-                await manager.getRequest();
-                return manager;
-            }).then(manager => manager),
+    const courseContentManager = CourseContentManager.create(token).then(async manager => {
+        await manager.getRequest();
+        addCourseElement.addEventListener("click", () => {
+            courseToggle.toggleOn();
+            manager.addContent();
+        });
+        commitCourseChangesElement.addEventListener("click", async () => {
+            await manager.syncRequest();
+        });
+        return manager;
+    });
 
-            JobContentManager.create(token).then(async manager => {
-                await manager.getRequest()
-                return manager;
-            }).then(manager => manager),
+    const jobContentManager = JobContentManager.create(token).then(async manager => {
+        await manager.getRequest();
+        addJobElement.addEventListener("click", () => {
+            jobToggle.toggleOn();
+            manager.addContent();
+        });
+        commitJobChangesElement.addEventListener("click", async () => {
+            await manager.syncRequest();
+        });
+        return manager;
+    });
 
-            WebPageContentManager.create(token).then(async manager => {
-                await manager.getRequest();
-                return manager
-            }).then(manager => manager)
-        ]
-    )).map(result => {
-        if (result.status === "fulfilled") {
-            return result.value;
-        }
-    })
-
-    addCourseElement.addEventListener("click", () => {
-        courseToggle.toggleOn();
-        courseContentManager.addContent();
-    });
-    commitCourseChangesElement.addEventListener("click", async () => {
-        await courseContentManager.syncRequest();
-    });
-    addJobElement.addEventListener("click", () => {
-        jobToggle.toggleOn();
-        jobContentManager.addContent();
-    });
-    commitJobChangesElement.addEventListener("click", async () => {
-        await jobContentManager.syncRequest();
-    });
-    addWebPage.addEventListener("click", () => {
-        webPageToggle.toggleOn();
-        webPageContentManager.addContent();
-    });
-    commitWebPageChangesElement.addEventListener("click", async () => {
-        await webPageContentManager.syncRequest();
+    const webPageContentManager = WebPageContentManager.create(token).then(async manager => {
+        await manager.getRequest();
+        addWebPage.addEventListener("click", () => {
+            webPageToggle.toggleOn();
+            manager.addContent();
+        });
+        commitWebPageChangesElement.addEventListener("click", async () => {
+            await manager.syncRequest();
+        });
+        return manager
     });
 });
 
