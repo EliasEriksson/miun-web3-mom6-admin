@@ -52,7 +52,8 @@ class Content<T extends { [key: string]: any }> {
     private master: ContentManager<T>;
     private content: T;
     private contentElements: { [key: string]: HTMLInputElement | HTMLTextAreaElement };
-
+    
+    private contentNode: HTMLElement|null;
     private undoButtonElement: HTMLElement|null;
     private moveUpButtonElement: HTMLElement|null;
     private moveDownButtonElement: HTMLElement|null;
@@ -64,6 +65,7 @@ class Content<T extends { [key: string]: any }> {
         this.master = master;
         this.contentElements = {};
 
+        this.contentNode = null;
         this.undoButtonElement = null;
         this.moveUpButtonElement = null;
         this.moveDownButtonElement = null;
@@ -118,9 +120,14 @@ class Content<T extends { [key: string]: any }> {
         }
     }
 
+    scrollTo = () => {
+        window.scrollTo(window.scrollX, this.contentNode.offsetTop);
+    }
+
     render = () => {
         let contentNode = <HTMLDivElement>render(this.template, this.content);
         let element: HTMLInputElement | HTMLTextAreaElement;
+        this.contentNode = contentNode;
         this.undoButtonElement = <HTMLElement>contentNode.querySelector(".undo-button");
         this.moveUpButtonElement = <HTMLElement>contentNode.querySelector(".move-up-button");
         this.moveDownButtonElement = <HTMLElement>contentNode.querySelector(".move-down-button");
@@ -352,11 +359,11 @@ abstract class ContentManager<T> {
         }
     }
 
-    toggleMoveButtons = (content: Content<T>|null = null) => {
-        if (content !== null) {
+    toggleMoveButtons = () => {
+        this.content.forEach(content => {
             content.showMoveUp();
             content.showMoveDown();
-        }
+        })
         if (this.content.length) {
             this.content[0].hideMoveUp();
             this.content[this.content.length-1].hideMoveDown();
@@ -367,12 +374,12 @@ abstract class ContentManager<T> {
         let content = this.createContent(this.emptyContent);
         let contentNode = content.render();
         this.content.splice(0, 0, content);
-
-        this.toggleMoveButtons(content);
-        this.toggleCommit();
-
-
         this.contentListElement.insertBefore(contentNode, this.contentListElement.firstChild);
+
+        this.toggleMoveButtons();
+        this.toggleCommit();
+        content.scrollTo();
+
         this.setSyncRequest(content, async () => {
             let [response, status]: [T, number] = await requestEndpoint(this.endpoint, this.token, "POST", content.getContent());
             if (200 <= status && status < 300) {
@@ -393,8 +400,9 @@ abstract class ContentManager<T> {
 
         }
 
-        this.toggleMoveButtons(content);
+        this.toggleMoveButtons();
         this.toggleCommit();
+        content.scrollTo();
     }
 
     moveContentDown = (content: Content<T>, contentNode: HTMLDivElement) => {
@@ -405,8 +413,9 @@ abstract class ContentManager<T> {
             this.contentListElement.insertBefore(contentNode.nextSibling, contentNode);
         }
 
-        this.toggleMoveButtons(content);
+        this.toggleMoveButtons();
         this.toggleCommit();
+        content.scrollTo();
     }
 
     deleteContent = (content: Content<T>, contentNode: HTMLDivElement) => {
