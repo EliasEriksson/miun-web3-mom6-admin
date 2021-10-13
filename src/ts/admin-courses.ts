@@ -1,8 +1,18 @@
 import {requestEndpoint, requestTemplate} from "./modules/requests.js";
-import {ApiEndpoint, ApiGetResponse, Callable, ContentType, Course, Job, WebPage} from "./modules/constants.js";
+import {
+    ApiEndpoint,
+    ApiGetResponse,
+    Callable,
+    ContentErrors,
+    ContentType,
+    Course,
+    Job, translateCourse,
+    WebPage
+} from "./modules/constants.js";
 import {render} from "./modules/xrender.js";
 import {autoGrow} from "./modules/triggers.js";
 import {redirect} from "./modules/redirect.js";
+import {shake, writeErrors} from "./modules/error.js";
 
 if (!localStorage.getItem("token")) {
     redirect("authenticate/")
@@ -206,6 +216,24 @@ class Content<T extends ContentType> {
     setID = (id: number) => {
         this.content.id = id;
     }
+
+    writeError = (error: ContentErrors, endpoint: string) => {
+        writeErrors(error, this.errorElement, translateCourse[endpoint]);
+    }
+
+    shake = () => {
+        let wait = Math.abs(this.contentNode.getBoundingClientRect().top + window.scrollY) / 11
+        console.log(wait)
+        new Promise(resolve => {
+            setTimeout(resolve, wait);
+        }).then(() => {
+            shake(this.contentNode);
+        })
+    }
+    
+    eraseError = () => {
+        this.errorElement.innerHTML = "";
+    }
 }
 
 abstract class ContentManager<T extends ContentType> {
@@ -244,7 +272,7 @@ abstract class ContentManager<T extends ContentType> {
     getRequest = async () => {
         this.contentListElement.innerHTML = "";
         let [initialResponse, initialStatus]: [ApiGetResponse<T>, number] = await requestEndpoint(
-            this.endpoint, this.token
+            `${this.endpoint}/`, this.token
         );
         if (200 <= initialStatus && initialStatus < 300) {
             this.content = initialResponse.results.map(result => this.createContent(result));
@@ -253,7 +281,7 @@ abstract class ContentManager<T extends ContentType> {
                 let nextURL = new URL(initialResponse.next);
                 let limit = parseInt(nextURL.searchParams.get("limit"));
                 let [followupResponse, followupStatus]: [ApiGetResponse<T>, number] = await requestEndpoint(
-                    `${this.endpoint}?limit=${initialResponse.count - limit}&offset=${limit}`, this.token
+                    `${this.endpoint}/?limit=${initialResponse.count - limit}&offset=${limit}`, this.token
                 );
                 if (200 <= followupStatus && followupStatus < 300) {
                     this.content.push(
@@ -296,16 +324,31 @@ abstract class ContentManager<T extends ContentType> {
             if (content.getOrder() !== index) {
                 content.setOrder(index);
                 this.setSyncRequest(content, async () => {
-                    await requestEndpoint(`${this.endpoint}${content.getID()}/`, this.token, "PUT", content.getContent());
+                    return await requestEndpoint(`${this.endpoint}/${content.getID()}/`, this.token, "PUT", content.getContent());
                 });
             }
         });
 
-        console.log(`requests ${this.syncRequests.size}`);
+
+        let response: ContentType|ContentErrors;
+        let status: number;
+        let contentError: Content<T>;
         for await (let [content, request] of this.syncRequests) {
-            await request();
-            content.updateOriginal();
-            this.removeSyncRequest(content);
+            [response, status] = await request();
+            if (200 <= status && status < 300) {
+                content.updateOriginal();
+                this.removeSyncRequest(content);
+            } else {
+                if (!contentError) {
+                    contentError = content;
+                }
+                content.writeError(<ContentErrors>response, this.endpoint);
+            }
+        }
+        this.contentListElement.style.height = `${this.contentListElement.scrollHeight}px`;
+        if (contentError) {
+            contentError.scrollTo();
+            contentError.shake()
         }
         this.updateOriginal();
         this.toggleCommit();
@@ -321,28 +364,18 @@ abstract class ContentManager<T extends ContentType> {
         if (this.content.length === this.originalOrder.length) {
             for (let i = 0; i < this.content.length; i++) {
                 if (this.content[i].changed()) {
-                    console.log("1")
-                    console.log(`Have changed, ${this.syncRequests.size} requests queued.`)
                     return true;
                 }
                 if (!this.content[i].equals(this.originalOrder[i])) {
-                    console.log("2")
-                    console.log(`Have changed, ${this.syncRequests.size} requests queued.`)
                     return true;
                 }
                 if (this.content[i].getOrder() !== i) {
-                    console.log("3")
-                    console.log(`Have changed, ${this.syncRequests.size} requests queued.`)
                     return true;
                 }
             }
         } else {
-            console.log("4")
-            console.log(`Have changed, ${this.syncRequests.size} requests queued.`)
             return true;
         }
-        console.log("5")
-        console.log(`Have NOT changed, ${this.syncRequests.size} requests queued.`)
         return false;
     }
 
@@ -380,16 +413,15 @@ abstract class ContentManager<T extends ContentType> {
         content.scrollTo();
 
         this.setSyncRequest(content, async () => {
-            let [response, status]: [T, number] = await requestEndpoint(this.endpoint, this.token, "POST", content.getContent());
+            let [response, status]: [T|ContentErrors, number] = await requestEndpoint(
+                `${this.endpoint}/`, this.token, "POST", content.getContent()
+            );
             if (200 <= status && status < 300) {
-                content.setID(response.id);
-            } else {
-
+                content.setID((<T>response).id);
             }
-
+            return [response, status]
         });
         this.contentListElement.style.height = `${this.contentListElement.scrollHeight}px`;
-
     }
 
     moveContentUp = (content: Content<T>, contentNode: HTMLDivElement): void => {
@@ -442,7 +474,7 @@ abstract class ContentManager<T extends ContentType> {
             this.contentListElement.style.height = `${newHeight}px`;
 
             this.setSyncRequest(content, async () => {
-                await requestEndpoint(`${this.endpoint}${content.getID()}/`, this.token, "DELETE", content.getContent());
+                return await requestEndpoint(`${this.endpoint}/${content.getID()}/`, this.token, "DELETE", content.getContent());
             }, true);
         }
         this.toggleCommit();
@@ -451,7 +483,7 @@ abstract class ContentManager<T extends ContentType> {
     editContent = (content: Content<T>) => {
         if (content.changed()) {
             this.setSyncRequest(content, async () => {
-                await requestEndpoint(`${this.endpoint}${content.getID()}/`, this.token, "PUT", content.getContent());
+                return await requestEndpoint(`${this.endpoint}/${content.getID()}/`, this.token, "PUT", content.getContent());
             })
         }
         this.toggleCommit();
@@ -483,7 +515,7 @@ class CourseContentManager extends ContentManager<Course> {
     static create = async (token: string, commitElement: HTMLElement): Promise<CourseContentManager> => {
         let contentTemplate = await requestTemplate("course.html");
         return new CourseContentManager(
-            token, "courses/",
+            token, "courses",
             contentTemplate,
             <HTMLDivElement>document.getElementById("course-list"),
             commitElement
@@ -504,7 +536,7 @@ class JobContentManager extends ContentManager<Job> {
     static create = async (token: string, commitElement: HTMLElement): Promise<JobContentManager> => {
         let jobTemplate = await requestTemplate("job.html");
         return new JobContentManager(
-            token, "jobs/", jobTemplate,
+            token, "jobs", jobTemplate,
             <HTMLDivElement>document.getElementById("job-list"),
             commitElement
         );
@@ -523,7 +555,7 @@ class WebPageContentManager extends ContentManager<WebPage> {
     static create = async (token: string, commitElement: HTMLElement): Promise<WebPageContentManager> => {
         let webPageTemplate = await requestTemplate("webpage.html");
         return new WebPageContentManager(
-            token, "webpages/", webPageTemplate,
+            token, "webpages", webPageTemplate,
             <HTMLDivElement>document.getElementById("webpage-list"),
             commitElement
         );

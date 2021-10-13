@@ -1,9 +1,34 @@
 export const apiURL = new URL("https://web3mom6rest.eliaseriksson.eu/");
 
-export const translate = {
+export const translateCourse = {
+    courses: {
+        id: "ID",
+        university: "Universitet",
+        name: "Kursnamn",
+        credit: "Högskolepoäng",
+        startDate: "Start datum",
+        endDate: "Slut datum",
+        order: "Ordning",
+    },
+    jobs: {
+        id: "ID",
+        company: "Företag",
+        title: "Titel",
+        startDate: "Start datum",
+        endDate: "Slut Datum",
+        order: "Ordning"
+    },
+    webpages: {
+        id: "ID",
+        title: "Titel",
+        description: "Beskrivning",
+        url: "Url",
+        order: "Ordning"
+    }
+
+
 
 }
-
 
 export type ApiGetResponse<T> = {
     count: number,
@@ -23,7 +48,7 @@ export type Course = {
     startDate: string,
     endDate: string,
     order: number
-}// & {[key: string]: any};
+}
 
 export type Job = {
     id: number,
@@ -32,7 +57,7 @@ export type Job = {
     startDate: string,
     endDate: string,
     order: number
-}// & {[key: string]: any};
+}
 
 export type WebPage = {
     id: number,
@@ -40,12 +65,40 @@ export type WebPage = {
     description: string,
     url: string,
     order: number
-}// & {[key: string]: any};
+}
 
 export type ContentType = Course|Job|WebPage;
 
+export type CourseErrors = {
+    id: string[],
+    university: string[],
+    name: string[],
+    credit: string[],
+    startDate: string[],
+    endDate: string[],
+    order: string[]
+}
 
-export type ApiEndpoint = "courses/" | "jobs/" | "webpages/";
+export type JobErrors = {
+    id: string[],
+    company: string[],
+    title: string[],
+    startDate: string[],
+    endDate: string[],
+    order: string[]
+}
+
+export type WebPageErrors = {
+    id: string[],
+    title: string[],
+    description: string[],
+    url: string[],
+    order: string[]
+}
+
+export type ContentErrors = CourseErrors | JobErrors | WebPageErrors;
+
+export type ApiEndpoint = "courses" | "jobs" | "webpages";
 
 export const _ = "";
 

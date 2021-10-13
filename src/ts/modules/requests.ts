@@ -1,4 +1,4 @@
-import {ApiEndpoint, apiURL, RequestMethods} from "./constants.js";
+import {ApiEndpoint, apiURL, ContentType, RequestMethods} from "./constants.js";
 
 /**
  * requests an api key for a specific user.
