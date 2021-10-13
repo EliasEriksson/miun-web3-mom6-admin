@@ -1,3 +1,18 @@
+.svg-button {
+  .background {
+    fill: red;
+  }
+
+  .foreground {
+    fill: white;
+  }
+  &.disabled {
+    .background {
+      fill: gray;
+    }
+  }
+}
+
 .svg-plus {
   width: 40px;
   height: 40px;

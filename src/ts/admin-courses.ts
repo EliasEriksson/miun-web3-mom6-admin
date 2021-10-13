@@ -142,6 +142,11 @@ class Content<T extends { [key: string]: any }> {
         // @ts-ignore
         return this.content.id;
     }
+
+    setID = (id: number) => {
+        // @ts-ignore
+        this.content.id = id;
+    }
 }
 
 abstract class ContentManager<T> {
@@ -154,14 +159,16 @@ abstract class ContentManager<T> {
     private readonly syncRequests: Map<Content<T>, Callable>;
 
     protected contentListElement: HTMLDivElement;
+    private commitElement: HTMLElement;
     private originalOrder: Content<T>[];
     protected content: Content<T>[];
 
-    constructor(token: string, endpoint: ApiEndpoint, contentTemplate: string, resultListElement: HTMLDivElement) {
+    constructor(token: string, endpoint: ApiEndpoint, contentTemplate: string, resultListElement: HTMLDivElement, commitElement: HTMLElement) {
         this.token = token;
         this.endpoint = endpoint;
         this.contentTemplate = contentTemplate;
         this.contentListElement = resultListElement;
+        this.commitElement = commitElement;
         this.content = [];
         this.originalOrder = [];
         this.syncRequests = new Map();
@@ -234,7 +241,6 @@ abstract class ContentManager<T> {
             }
         });
 
-
         for await (let [content, request] of this.syncRequests) {
             await request();
             content.updateOriginal();
@@ -279,6 +285,18 @@ abstract class ContentManager<T> {
         return false;
     }
 
+    toggleCommit = () => {
+        if (this.changed()) {
+            if (!this.commitElement.classList.contains("")) {
+                this.commitElement.classList.add("");
+            }
+        } else {
+            if (this.commitElement.classList.contains("")) {
+                this.commitElement.classList.remove("");
+            }
+        }
+    }
+
     addContent = () => {
         let content = this.createContent(this.emptyContent);
         let contentNode = content.render();
@@ -286,7 +304,11 @@ abstract class ContentManager<T> {
         this.content.splice(0, 0, content);
         this.contentListElement.insertBefore(contentNode, this.contentListElement.firstChild);
         this.setSyncRequest(content, async () => {
-            await requestEndpoint(this.endpoint, this.token, "POST", content.getContent())
+            let [response, status]: [T, number] = await requestEndpoint(this.endpoint, this.token, "POST", content.getContent());
+            if (200 <= status && status < 300) {
+                // @ts-ignore
+                content.setID(response.id);
+            }
         });
         this.contentListElement.style.height = `${this.contentListElement.scrollHeight}px`;
         this.changed();
@@ -373,12 +395,13 @@ class CourseContentManager extends ContentManager<Course> {
         order: -1
     };
 
-    static create = async (token: string): Promise<CourseContentManager> => {
+    static create = async (token: string, commitElement: HTMLElement): Promise<CourseContentManager> => {
         let contentTemplate = await requestTemplate("course.html");
         return new CourseContentManager(
             token, "courses/",
             contentTemplate,
-            <HTMLDivElement>document.getElementById("course-list")
+            <HTMLDivElement>document.getElementById("course-list"),
+            commitElement
         );
     }
 }
@@ -393,11 +416,12 @@ class JobContentManager extends ContentManager<Job> {
         order: -1
     }
 
-    static create = async (token: string): Promise<JobContentManager> => {
+    static create = async (token: string, commitElement: HTMLElement): Promise<JobContentManager> => {
         let jobTemplate = await requestTemplate("job.html");
         return new JobContentManager(
             token, "jobs/", jobTemplate,
-            <HTMLDivElement>document.getElementById("job-list")
+            <HTMLDivElement>document.getElementById("job-list"),
+            commitElement
         );
     }
 }
@@ -411,11 +435,12 @@ class WebPageContentManager extends ContentManager<WebPage> {
         order: -1
     }
 
-    static create = async (token: string): Promise<WebPageContentManager> => {
+    static create = async (token: string, commitElement: HTMLElement): Promise<WebPageContentManager> => {
         let webPageTemplate = await requestTemplate("webpage.html");
         return new WebPageContentManager(
             token, "webpages/", webPageTemplate,
-            <HTMLDivElement>document.getElementById("webpage-list")
+            <HTMLDivElement>document.getElementById("webpage-list"),
+            commitElement
         );
     }
 }
@@ -443,7 +468,9 @@ window.addEventListener("load", async () => {
     );
 
     const token = localStorage.getItem("token");
-    const courseContentManager = CourseContentManager.create(token).then(async manager => {
+    const courseContentManager = CourseContentManager.create(
+        token, commitCourseChangesElement
+    ).then(async manager => {
         await manager.getRequest();
         addCourseElement.addEventListener("click", () => {
             courseToggle.toggleOn();
@@ -455,7 +482,9 @@ window.addEventListener("load", async () => {
         return manager;
     });
 
-    const jobContentManager = JobContentManager.create(token).then(async manager => {
+    const jobContentManager = JobContentManager.create(
+        token, commitJobChangesElement
+    ).then(async manager => {
         await manager.getRequest();
         addJobElement.addEventListener("click", () => {
             jobToggle.toggleOn();
@@ -467,7 +496,9 @@ window.addEventListener("load", async () => {
         return manager;
     });
 
-    const webPageContentManager = WebPageContentManager.create(token).then(async manager => {
+    const webPageContentManager = WebPageContentManager.create(
+        token, commitWebPageChangesElement
+    ).then(async manager => {
         await manager.getRequest();
         addWebPage.addEventListener("click", () => {
             webPageToggle.toggleOn();
