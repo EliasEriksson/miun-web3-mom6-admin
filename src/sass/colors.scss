@@ -1,0 +1,225 @@
+@import "mixins";
+
+$background-color-dark: #36393f;
+$darker-background-color-dark: #202225;
+$foreground-color-dark: #18191c;
+$darker-foreground-color-dark: #18191c;
+
+$select-color-dark: #4551c5;
+$error-color-dark: #ed4043;
+$success-color-dark: #32a662;
+$contrast-color-dark: #dcddde;
+
+$background-color-light: #ffffff;
+$darker-background-color-light: #f2f3f5;
+$foreground-color-light: #e3e5e8;
+$darker-foreground-color-light: #b5baf1;
+
+$select-color-light: #4551c5;
+$error-color-light: #ed4043;
+$success-color-light: #32a662;
+$contrast-color-light: #4f565f;
+
+body {
+  background-color: $background-color-light;
+  color: $contrast-color-light;
+
+  @include darkMode() {
+    background-color: $background-color-dark;
+    color: $contrast-color-dark;
+  }
+}
+
+.section-controls {
+  background-color: $foreground-color-light;
+
+  @include darkMode() {
+    background-color: $darker-foreground-color-dark;
+  }
+}
+
+
+.svg-button {
+  .background {
+    fill: $background-color-light;
+  }
+
+  .foreground {
+    fill: $select-color-light;
+  }
+
+  &:hover:not(.disabled) {
+    .background {
+      fill: $select-color-light;
+    }
+  }
+
+  &.disabled {
+    .foreground {
+      fill: lighten($select-color-light, 35%);
+    }
+  }
+
+  @include darkMode() {
+    .background {
+      fill: $background-color-dark;
+    }
+
+    .foreground {
+      fill: $contrast-color-dark;
+    }
+
+    &:hover:not(.disabled) {
+      .background {
+        fill: $select-color-dark;
+      }
+    }
+
+    &.disabled {
+      .foreground {
+        fill: darken($contrast-color-dark, 55%);
+      }
+    }
+  }
+}
+
+.delete-button {
+  .background {
+    fill: $error-color-light;
+  }
+
+  &:hover:not(.disabled) {
+    .background {
+      fill: lighten($error-color-light, 5%);
+    }
+
+    .foreground {
+      fill: lighten($contrast-color-light, 5%);
+    }
+  }
+
+  @include darkMode() {
+    .background {
+      fill: $error-color-dark;
+    }
+
+    &:hover:not(.disabled) {
+      .background {
+        fill: lighten($error-color-dark, 5%);
+      }
+
+      .foreground {
+        fill: lighten($contrast-color-dark, 5%);
+      }
+    }
+  }
+}
+
+.undo-button:not(.disabled) {
+  .background {
+    fill: $error-color-light;
+  }
+
+  .foreground {
+    fill: $contrast-color-light;
+  }
+
+  &:hover {
+    .background {
+      fill: lighten($error-color-light, 5%);
+    }
+    .foreground {
+      fill: lighten($contrast-color-light, 5%);
+    }
+  }
+
+  @include darkMode() {
+    .background {
+      fill: $error-color-dark;
+    }
+
+    .foreground {
+      fill: $contrast-color-dark;
+    }
+
+    &:hover {
+      .background {
+        fill: lighten($error-color-dark, 5%);
+      }
+      .foreground {
+        fill: lighten($contrast-color-dark, 5%);
+      }
+    }
+  }
+}
+
+.apply-button:not(.disabled) {
+  .background {
+    fill: $success-color-light;
+  }
+  &:hover {
+    .background {
+      fill: lighten($success-color-light, 5%);
+    }
+    .foreground {
+      fill: lighten($contrast-color-light, 5%);
+    }
+  }
+
+  @include darkMode() {
+    .background {
+      fill: $success-color-dark;
+    }
+    &:hover {
+      .background {
+        fill: lighten($success-color-dark, 5%);
+      }
+      .foreground {
+        fill: lighten($contrast-color-dark, 5%);
+      }
+    }
+  }
+}
+
+
+
+.form-wrapper {
+  background-color: $darker-background-color-light;
+
+  @include darkMode() {
+    background-color: $darker-background-color-dark;
+  }
+}
+
+input, textarea {
+  outline: none;
+  border: none;
+
+  background-color: $background-color-light;
+  color: $contrast-color-light;
+
+  @include darkMode() {
+    background-color: $background-color-dark;
+    color: $contrast-color-dark
+  }
+
+  &:focus {
+    border-radius: 2px;
+    border-style: solid;
+    border-width: 2px;
+    border-color: $select-color-light;
+
+    @include darkMode() {
+      border-color: $select-color-dark;
+    }
+  }
+}
+
+.error {
+  color: $error-color-light;
+
+  @include darkMode() {
+    color: $error-color-dark;
+  }
+}
+
