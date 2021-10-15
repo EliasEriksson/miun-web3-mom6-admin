@@ -92,7 +92,7 @@ class Content<T extends ContentType> {
             this.content[key] = element.value;
             this.master.editContent(this);
             this.toggleUndo();
-        })
+        });
     }
 
     toggleUndo = () => {
@@ -153,17 +153,14 @@ class Content<T extends ContentType> {
 
         this.moveUpButtonElement.addEventListener("click", () => {
             this.master.moveContentUp(this, contentNode);
-            this.toggleUndo();
         });
 
         this.moveDownButtonElement.addEventListener("click", () => {
             this.master.moveContentDown(this, contentNode);
-            this.toggleUndo();
         });
 
         contentNode.querySelector(".delete-button").addEventListener("click", () => {
             this.master.deleteContent(this, contentNode);
-            this.toggleUndo();
         });
 
         for (const key in this.content) {
@@ -189,6 +186,7 @@ class Content<T extends ContentType> {
         if (Object.keys(this.contentElements).length) {
             for (const key in this.contentElements) {
                 this.contentElements[key].value = this.original[key];
+                this.content[key] = this.original[key];
             }
         }
     }
@@ -223,7 +221,6 @@ class Content<T extends ContentType> {
 
     shake = () => {
         let wait = Math.abs(this.contentNode.getBoundingClientRect().top + window.scrollY) / 11
-        console.log(wait)
         new Promise(resolve => {
             setTimeout(resolve, wait);
         }).then(() => {
