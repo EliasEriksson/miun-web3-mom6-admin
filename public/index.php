@@ -8,7 +8,7 @@ include_once __DIR__ . "/src/xrender.php";
 <head>
     <?php include "$rootPath/templates/php/head.php"; ?>
     <script src="js/auto-grow-textarea.js" defer></script>
-    <script src="js/admin-courses.js" type="module"></script>
+    <script src="js/admin.js" type="module"></script>
     <title>Admin</title>
 </head>
 <body>
