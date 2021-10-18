@@ -18,6 +18,13 @@ if (!localStorage.getItem("token")) {
     redirect("authenticate/")
 }
 
+const toggleClass = (element: HTMLElement, cls: string) => {
+    if (element.classList.contains(cls)) {
+        element.classList.remove(cls);
+    } else {
+        element.classList.add(cls);
+    }
+}
 
 class Toggle {
     private htmlElement: HTMLElement;
@@ -70,6 +77,11 @@ class Content<T extends ContentType> {
     private errorElement: HTMLParagraphElement|null;
 
     constructor(content: T, template: string, master: ContentManager<T>) {
+
+
+
+
+
         this.original = {...content};
         this.content = content;
         this.template = template;
@@ -97,13 +109,9 @@ class Content<T extends ContentType> {
 
     toggleUndo = () => {
         if (this.changed()) {
-            if (this.undoButtonElement.classList.contains("disabled")) {
-                this.undoButtonElement.classList.remove("disabled");
-            }
+            toggleClass(this.undoButtonElement, "disabled");
         } else {
-            if (!this.undoButtonElement.classList.contains("disabled")) {
-                this.undoButtonElement.classList.add("disabled");
-            }
+            toggleClass(this.undoButtonElement, "disabled")
         }
     }
 
@@ -325,7 +333,6 @@ abstract class ContentManager<T extends ContentType> {
                 });
             }
         });
-
 
         let response: ContentType|ContentErrors;
         let status: number;
@@ -568,6 +575,10 @@ window.addEventListener("load", async () => {
     const commitJobChangesElement = document.getElementById("apply-jobs");
     const commitWebPageChangesElement = document.getElementById("apply-webpages");
 
+    const courseLoadingElement = document.getElementById("course-loading");
+    const jobLoadingElement = document.getElementById("job-loading");
+    const websiteLoadingElement = document.getElementById("website-loading");
+
     const courseToggle = new Toggle(
         document.getElementById("course-expand-button"),
         document.getElementById("course-list")
@@ -591,7 +602,9 @@ window.addEventListener("load", async () => {
             manager.addContent();
         });
         commitCourseChangesElement.addEventListener("click", async () => {
+            toggleClass(courseLoadingElement, "disabled");
             await manager.syncRequest();
+            toggleClass(courseLoadingElement, "disabled");
         });
         return manager;
     });
@@ -605,7 +618,9 @@ window.addEventListener("load", async () => {
             manager.addContent();
         });
         commitJobChangesElement.addEventListener("click", async () => {
+            toggleClass(jobLoadingElement, "disabled");
             await manager.syncRequest();
+            toggleClass(jobLoadingElement, "disabled");
         });
         return manager;
     });
@@ -619,7 +634,9 @@ window.addEventListener("load", async () => {
             manager.addContent();
         });
         commitWebPageChangesElement.addEventListener("click", async () => {
+            toggleClass(websiteLoadingElement, "disabled");
             await manager.syncRequest();
+            toggleClass(websiteLoadingElement, "disabled");
         });
         return manager
     });

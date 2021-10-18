@@ -1,3 +1,15 @@
+.loading {
+  display: flex;
+  width: 40px;
+  height: 40px;
+  padding: 5px;
+  border-radius: 10px;
+
+  &.disabled {
+    display: none;
+  }
+}
+
 // taken from https://www.w3schools.com/howto/howto_css_shake_image.asp
 .error-shake {
   animation: shake 500ms;

@@ -10,15 +10,17 @@ $error-color-dark: #ed4043;
 $success-color-dark: #32a662;
 $contrast-color-dark: #dcddde;
 
-$background-color-light: #ffffff;
-$darker-background-color-light: #f2f3f5;
-$foreground-color-light: #e3e5e8;
-$darker-foreground-color-light: #b5baf1;
+$weight: 95%; // not lower than 80 or contrast gets really bad
+$background-color-light: invert($background-color-dark, $weight);
+$darker-background-color-light: invert($darker-background-color-dark, $weight);
+$foreground-color-light: invert($foreground-color-dark, $weight);
+$darker-foreground-color-light: invert($darker-foreground-color-dark, $weight);
 
-$select-color-light: #4551c5;
-$error-color-light: #ed4043;
-$success-color-light: #32a662;
-$contrast-color-light: #4f565f;
+
+$select-color-light: lighten($select-color-dark, 100 - $weight);
+$error-color-light: lighten($error-color-dark, 100 - $weight);
+$success-color-light: lighten($success-color-dark, 100 - $weight);
+$contrast-color-light: invert($contrast-color-dark, $weight);
 
 body {
   background-color: $background-color-light;
@@ -31,7 +33,7 @@ body {
 }
 
 .section-controls {
-  background-color: $foreground-color-light;
+  background-color: $darker-foreground-color-light;
 
   @include darkMode() {
     background-color: $darker-foreground-color-dark;
@@ -39,13 +41,21 @@ body {
 }
 
 
+.loading {
+  background-color: $background-color-light;
+
+  @include darkMode() {
+    background-color: $background-color-dark;
+  }
+}
+
 .svg-button {
   .background {
     fill: $background-color-light;
   }
 
   .foreground {
-    fill: $select-color-light;
+    fill: $contrast-color-light;
   }
 
   &:hover:not(.disabled) {
@@ -56,7 +66,7 @@ body {
 
   &.disabled {
     .foreground {
-      fill: lighten($select-color-light, 35%);
+      fill: lighten($contrast-color-light, 35%);
     }
   }
 

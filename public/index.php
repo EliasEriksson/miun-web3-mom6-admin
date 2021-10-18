@@ -25,6 +25,7 @@ include_once __DIR__ . "/src/xrender.php";
                     <h2>Kurser</h2>
                 </div>
                 <div>
+                    <img id="course-loading" class="loading disabled" src="<?=$rootURL?>/media/loading.gif" alt="loading">
                     <?= render("$rootPath/templates/html/apply.html", [
                         "id" => "apply-courses"
                     ]); ?>
@@ -44,6 +45,7 @@ include_once __DIR__ . "/src/xrender.php";
                     <h2>Jobs</h2>
                 </div>
                 <div>
+                    <img id="job-loading" class="loading disabled" src="<?=$rootURL?>/media/loading.gif" alt="loading">
                     <?= render("$rootPath/templates/html/apply.html", [
                         "id" => "apply-jobs"
                     ]); ?>
@@ -57,6 +59,7 @@ include_once __DIR__ . "/src/xrender.php";
         <section>
             <div class="section-controls">
                 <div>
+                    <img id="website-loading" class="loading disabled" src="<?=$rootURL?>/media/loading.gif" alt="loading">
                     <?= render("$rootPath/templates/html/toggle.html", [
                         "id" => "webpage-expand-button"
                     ])?>
