@@ -11,5 +11,6 @@ export const autoGrow = (textAreaElement: HTMLTextAreaElement) => {
     }
 
     textAreaElement.addEventListener("input", resize);
+    textAreaElement.addEventListener("change", resize);
     window.addEventListener("resize", resize);
 }

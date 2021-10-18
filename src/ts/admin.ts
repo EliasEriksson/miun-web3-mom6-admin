@@ -152,6 +152,10 @@ class Content<T extends ContentType> {
         this.moveUpButtonElement = <HTMLElement>contentNode.querySelector(".move-up-button");
         this.moveDownButtonElement = <HTMLElement>contentNode.querySelector(".move-down-button");
 
+        contentNode.querySelector("form").addEventListener("submit", e => {
+            e.preventDefault();
+        })
+
         this.undoButtonElement.addEventListener("click", () => {
             this.revertChanges();
             this.master.undoContent(this);
@@ -490,6 +494,7 @@ abstract class ContentManager<T extends ContentType> {
             })
         }
         this.toggleCommit();
+        this.contentListElement.style.height = `${this.contentListElement.scrollHeight}px`;
     }
 
     undoContent = (content: Content<T>) => {
