@@ -77,11 +77,6 @@ class Content<T extends ContentType> {
     private errorElement: HTMLParagraphElement|null;
 
     constructor(content: T, template: string, master: ContentManager<T>) {
-
-
-
-
-
         this.original = {...content};
         this.content = content;
         this.template = template;
@@ -109,9 +104,13 @@ class Content<T extends ContentType> {
 
     toggleUndo = () => {
         if (this.changed()) {
-            toggleClass(this.undoButtonElement, "disabled");
+            if (this.undoButtonElement.classList.contains("disabled")) {
+                this.undoButtonElement.classList.remove("disabled");
+            }
         } else {
-            toggleClass(this.undoButtonElement, "disabled")
+            if (!this.undoButtonElement.classList.contains("disabled")) {
+                this.undoButtonElement.classList.add("disabled");
+            }
         }
     }
 
