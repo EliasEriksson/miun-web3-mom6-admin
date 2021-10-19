@@ -171,7 +171,9 @@ class Content<T extends ContentType> {
         });
 
         contentNode.querySelector(".delete-button").addEventListener("click", () => {
-            this.master.deleteContent(this, contentNode);
+            if (confirm(`Är du säker på att du vill ta bort detta?`)) {
+                this.master.deleteContent(this, contentNode);
+            }
         });
 
         for (const key in this.content) {
@@ -606,9 +608,11 @@ window.addEventListener("load", async () => {
             manager.addContent();
         });
         commitCourseChangesElement.addEventListener("click", async () => {
-            toggleClass(courseLoadingElement, "disabled");
-            await manager.syncRequest();
-            toggleClass(courseLoadingElement, "disabled");
+            if (confirm("Är du säker på att du vill applicera ändringarna gjorda till alla kurser?")) {
+                toggleClass(courseLoadingElement, "disabled");
+                await manager.syncRequest();
+                toggleClass(courseLoadingElement, "disabled");
+            }
         });
         return manager;
     });
@@ -622,9 +626,11 @@ window.addEventListener("load", async () => {
             manager.addContent();
         });
         commitJobChangesElement.addEventListener("click", async () => {
-            toggleClass(jobLoadingElement, "disabled");
-            await manager.syncRequest();
-            toggleClass(jobLoadingElement, "disabled");
+            if (confirm("Är du säker på att du vill applicera ändringarna gjorda till alla jobb?")) {
+                toggleClass(jobLoadingElement, "disabled");
+                await manager.syncRequest();
+                toggleClass(jobLoadingElement, "disabled");
+            }
         });
         return manager;
     });
@@ -638,9 +644,11 @@ window.addEventListener("load", async () => {
             manager.addContent();
         });
         commitWebPageChangesElement.addEventListener("click", async () => {
-            toggleClass(websiteLoadingElement, "disabled");
-            await manager.syncRequest();
-            toggleClass(websiteLoadingElement, "disabled");
+            if (confirm("Är du säker på att du vill applicera ändringarna gjorda till alla webbplatser?")) {
+                toggleClass(websiteLoadingElement, "disabled");
+                await manager.syncRequest();
+                toggleClass(websiteLoadingElement, "disabled");
+            }
         });
         return manager
     });
