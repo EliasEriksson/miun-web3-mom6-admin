@@ -1,4 +1,4 @@
-import {ApiEndpoint, apiURL, ContentType, RequestMethods} from "./constants.js";
+import {apiURL, RequestMethods} from "./constants.js";
 
 /**
  * requests an api key for a specific user.
@@ -6,7 +6,7 @@ import {ApiEndpoint, apiURL, ContentType, RequestMethods} from "./constants.js";
  * @param username: the users username
  * @param password: the users password.
  */
-export const requestToken = async (username: string, password: string): Promise<{ token: string }> => {
+export const requestToken = async (username: string, password: string): Promise<[{[key: string]: string}, number]> => {
     let response =  await fetch(`${apiURL.href}token/`, {
         method: "POST",
         headers: {
@@ -17,7 +17,7 @@ export const requestToken = async (username: string, password: string): Promise<
             password: password
         })
     });
-    return await response.json();
+    return [await response.json(), response.status];
 }
 
 /**

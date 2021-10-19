@@ -18,6 +18,7 @@
             <label>Lösenord:
                 <input id="password" type="password">
             </label>
+            <p class="error"></p>
             <input id="login-button" type="submit" value="Logga In">
         </form>
     </main>
