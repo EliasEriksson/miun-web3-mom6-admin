@@ -41,6 +41,16 @@ body {
 }
 
 
+.top-navigator {
+  svg {
+    box-shadow: 0 0 10px $contrast-color-light;
+    @include darkMode() {
+      box-shadow: 0 0 10px $contrast-color-dark;
+    }
+  }
+}
+
+
 .loading {
   background-color: $background-color-light;
 
@@ -138,6 +148,7 @@ body {
     .background {
       fill: lighten($error-color-light, 5%);
     }
+
     .foreground {
       fill: lighten($contrast-color-light, 5%);
     }
@@ -156,6 +167,7 @@ body {
       .background {
         fill: lighten($error-color-dark, 5%);
       }
+
       .foreground {
         fill: lighten($contrast-color-dark, 5%);
       }
@@ -167,10 +179,12 @@ body {
   .background {
     fill: $success-color-light;
   }
+
   &:hover {
     .background {
       fill: lighten($success-color-light, 5%);
     }
+
     .foreground {
       fill: lighten($contrast-color-light, 5%);
     }
@@ -184,6 +198,7 @@ body {
       .background {
         fill: lighten($success-color-dark, 5%);
       }
+
       .foreground {
         fill: lighten($contrast-color-dark, 5%);
       }
@@ -205,10 +220,13 @@ body {
     border-bottom: none;
     border-right: none;
     border-width: 1px;
+
+    border-color: $contrast-color-light;
     background-color: $background-color-light;
     color: $contrast-color-light;
 
     @include darkMode() {
+      border: none;
       background-color: $background-color-dark;
       color: $contrast-color-dark;
     }
@@ -228,31 +246,65 @@ body {
   input[type=submit] {
     border-top: none;
     border-left: none;
-    border-bottom: 1px inset;
-    border-right: 1px inset;
-    border-color: $contrast-color-light;
+    border-bottom: 1px solid;
+    border-right: 1px solid;
+    border-color: $select-color-light;
 
     @include darkMode() {
-      border-color: $contrast-color-dark;
+      border-color: $select-color-dark;
     }
 
     &:focus {
-      border-radius: 2px;
-      border-style: solid;
+      //border-radius: 1px;
+      //border-style: solid;
       border-width: 2px;
+      background-color: lighten($background-color-light, 2%);
       border-color: $select-color-light;
 
       @include darkMode() {
+        //border-top: none;
+        //border-left: none;
+        //border-bottom: 1px inset;
+        //border-right: 1px inset;
+        background-color: lighten($background-color-dark, 2%);
         border-color: $select-color-dark;
       }
     }
 
     &:active {
-      border-left: 1px solid;
-      border-top: 1px solid;
-      border-right: none;
-      border-bottom: none;
+      border-radius: 2px;
+      border-style: solid;
+      border-width: 2px;
+
+      @include darkMode() {
+
+        border-color: $select-color-dark;
+      }
     }
+  }
+}
+
+.login-form {
+  background-color: $darker-background-color-light;
+
+  @include darkMode() {
+    background-color: $darker-background-color-dark;
+  }
+}
+
+footer {
+  background-color: $foreground-color-light;
+
+  a {
+    color: $select-color-light;
+
+    @include darkMode() {
+      color: $select-color-dark;
+    }
+  }
+
+  @include darkMode() {
+    background-color: $foreground-color-dark;
   }
 }
 

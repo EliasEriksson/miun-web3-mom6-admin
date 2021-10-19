@@ -10,11 +10,13 @@ html {
 
 body {
   display: flex;
-  justify-content: center;
+  justify-content: space-between;
   align-items: center;
+  flex-direction: column;
 
   line-height: 1.5;
   font-family: "Open Sans", sans-serif;
+  min-height: 100vh;
 }
 
 .main-wrapper {
@@ -68,10 +70,6 @@ section {
       display: flex;
       margin-right: 30px;
       margin-top: 10px;
-
-      svg {
-        box-shadow: 0 0 10px black;
-      }
     }
   }
 
@@ -142,6 +140,20 @@ section {
   }
 }
 
+
+footer {
+  min-height: 50px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px 20px;
+  padding: 10px;
+
+  @include media(500px){
+    flex-direction: column;
+  }
+}
 
 .expand-button {
   transition: transform 200ms linear;

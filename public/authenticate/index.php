@@ -8,22 +8,19 @@
     <title>Authenticate</title>
 </head>
 <body>
-<?php include "$rootPath/templates/php/header.php"; ?>
 <div class="main-wrapper">
     <main>
-        <div class="form-wrapper">
-            <form class="form">
-                <label>Användarnamn:
-                    <textarea id="username"></textarea>
-                </label>
-                <label>Lösenord:
-                    <input id="password" type="password">
-                </label>
-                <input id="login-button" type="submit" value="Logga In">
-            </form>
-        </div>
+        <h1>Logga In</h1>
+        <form class="form login-form">
+            <label>Användarnamn:
+                <textarea id="username"></textarea>
+            </label>
+            <label>Lösenord:
+                <input id="password" type="password">
+            </label>
+            <input id="login-button" type="submit" value="Logga In">
+        </form>
     </main>
 </div>
-<?php include "$rootPath/templates/php/footer.php"; ?>
 </body>
 </html>

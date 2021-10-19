@@ -12,7 +12,6 @@ include_once __DIR__ . "/src/xrender.php";
     <title>Admin</title>
 </head>
 <body>
-<?php include "$rootPath/templates/php/header.php" ?>
 <div class="main-wrapper">
     <main>
         <h1>Admin</h1>
@@ -33,7 +32,8 @@ include_once __DIR__ . "/src/xrender.php";
                     <h2>Kurser</h2>
                 </div>
                 <div>
-                    <img id="course-loading" class="loading disabled" src="<?=$rootURL?>/media/loading.gif" alt="loading">
+                    <img id="course-loading" class="loading disabled" src="<?= $rootURL ?>/media/loading.gif"
+                         alt="loading">
                     <?= render("$rootPath/templates/html/apply.html", [
                         "id" => "apply-courses"
                     ]); ?>
@@ -56,12 +56,13 @@ include_once __DIR__ . "/src/xrender.php";
             <div class="section-controls">
                 <div>
                     <?= render("$rootPath/templates/html/toggle.html", [
-                            "id" => "job-expand-button"
-                    ])?>
+                        "id" => "job-expand-button"
+                    ]) ?>
                     <h2>Jobb</h2>
                 </div>
                 <div>
-                    <img id="job-loading" class="loading disabled" src="<?=$rootURL?>/media/loading.gif" alt="loading">
+                    <img id="job-loading" class="loading disabled" src="<?= $rootURL ?>/media/loading.gif"
+                         alt="loading">
                     <?= render("$rootPath/templates/html/apply.html", [
                         "id" => "apply-jobs"
                     ]); ?>
@@ -83,10 +84,11 @@ include_once __DIR__ . "/src/xrender.php";
             </div>
             <div class="section-controls">
                 <div>
-                    <img id="website-loading" class="loading disabled" src="<?=$rootURL?>/media/loading.gif" alt="loading">
+                    <img id="website-loading" class="loading disabled" src="<?= $rootURL ?>/media/loading.gif"
+                         alt="loading">
                     <?= render("$rootPath/templates/html/toggle.html", [
                         "id" => "webpage-expand-button"
-                    ])?>
+                    ]) ?>
                     <h2>Webbplatser</h2>
                 </div>
                 <div>
