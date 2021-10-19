@@ -328,7 +328,6 @@ abstract class ContentManager<T extends ContentType> {
     }
 
     syncRequest = async () => {
-        console.log("before: ", this.syncRequests)
         this.content.forEach((content, index) => {
             if (content.getOrder() !== index) {
                 content.setOrder(index);
@@ -360,7 +359,6 @@ abstract class ContentManager<T extends ContentType> {
         }
         this.updateOriginal();
         this.toggleCommit();
-        console.log("after: ", this.syncRequests)
     }
 
     renderContent = () => {

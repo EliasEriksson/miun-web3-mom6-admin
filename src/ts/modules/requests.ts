@@ -50,7 +50,7 @@ export const requestEndpoint = async (
 
     let response = await fetch(`${apiURL.href}${endpoint}`, init);
     if (method === "DELETE") {
-        return null;
+        return [null, response.status];
     }
     return [await response.json(), response.status];
 }
