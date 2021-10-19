@@ -84,14 +84,14 @@ include_once __DIR__ . "/src/xrender.php";
             </div>
             <div class="section-controls">
                 <div>
-                    <img id="website-loading" class="loading disabled" src="<?= $rootURL ?>/media/loading.gif"
-                         alt="loading">
                     <?= render("$rootPath/templates/html/toggle.html", [
                         "id" => "webpage-expand-button"
                     ]) ?>
                     <h2>Webbplatser</h2>
                 </div>
                 <div>
+                    <img id="website-loading" class="loading disabled" src="<?= $rootURL ?>/media/loading.gif"
+                         alt="loading">
                     <?= render("$rootPath/templates/html/apply.html", [
                         "id" => "apply-webpages"
                     ]); ?>
