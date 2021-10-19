@@ -15,8 +15,6 @@ body {
 
   line-height: 1.5;
   font-family: "Open Sans", sans-serif;
-
-
 }
 
 .main-wrapper {
@@ -36,12 +34,16 @@ h1 {
 }
 
 section {
+  position: relative;
+  z-index: 99;
   display: flex;
   flex-direction: column;
 
   margin-top: 20px;
 
   .section-controls {
+    position: relative;
+    z-index: 10;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -51,6 +53,25 @@ section {
     > div {
       display: flex;
       gap: 1ch;
+    }
+  }
+
+  .top-navigator {
+    position: sticky;
+    display: flex;
+    justify-content: flex-end;
+    top: 0;
+
+    a {
+      position: absolute;
+      z-index: 1;
+      display: flex;
+      margin-right: 30px;
+      margin-top: 10px;
+
+      svg {
+        box-shadow: 0 0 10px black;
+      }
     }
   }
 
@@ -94,7 +115,7 @@ section {
   }
 }
 
-.course-form {
+.form {
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -111,13 +132,13 @@ section {
     > * {
       width: 100%;
     }
+  }
 
-    > input, > textarea {
-      height: 2.5em;
-      padding: 10px;
-      overflow: hidden;
-      resize: none;
-    }
+  input, textarea {
+    height: 2.5em;
+    padding: 10px;
+    overflow: hidden;
+    resize: none;
   }
 }
 
@@ -130,9 +151,10 @@ section {
   transform: rotate(90deg);
 }
 
-textarea {
-  height: 2.5em;
-  padding: 10px;
-  overflow: hidden;
-  resize: none;
+.rotate-270deg {
+  transform: rotate(270deg);
+}
+
+.apply-button {
+  transform: scaleX(-1);
 }

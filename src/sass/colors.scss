@@ -191,8 +191,6 @@ body {
   }
 }
 
-
-
 .form-wrapper {
   background-color: $darker-background-color-light;
 
@@ -201,26 +199,59 @@ body {
   }
 }
 
-input, textarea {
-  outline: none;
-  border: none;
-
-  background-color: $background-color-light;
-  color: $contrast-color-light;
-
-  @include darkMode() {
-    background-color: $background-color-dark;
-    color: $contrast-color-dark
-  }
-
-  &:focus {
-    border-radius: 2px;
-    border-style: solid;
-    border-width: 2px;
-    border-color: $select-color-light;
+.form {
+  input, textarea {
+    outline: none;
+    border-bottom: none;
+    border-right: none;
+    border-width: 1px;
+    background-color: $background-color-light;
+    color: $contrast-color-light;
 
     @include darkMode() {
-      border-color: $select-color-dark;
+      background-color: $background-color-dark;
+      color: $contrast-color-dark;
+    }
+
+    &:focus {
+      border-radius: 2px;
+      border-style: solid;
+      border-width: 2px;
+      border-color: $select-color-light;
+
+      @include darkMode() {
+        border-color: $select-color-dark;
+      }
+    }
+  }
+
+  input[type=submit] {
+    border-top: none;
+    border-left: none;
+    border-bottom: 1px inset;
+    border-right: 1px inset;
+    border-color: $contrast-color-light;
+
+    @include darkMode() {
+      border-color: $contrast-color-dark;
+    }
+
+    &:focus {
+      border-radius: 2px;
+      border-style: solid;
+      border-width: 2px;
+      border-color: $select-color-light;
+
+      @include darkMode() {
+        border-color: $select-color-dark;
+      }
+    }
+
+    &:active {
+      border-left: 1px solid;
+      border-top: 1px solid;
+      border-right: none;
+      border-bottom: none;
     }
   }
 }

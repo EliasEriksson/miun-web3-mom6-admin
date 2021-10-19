@@ -16,7 +16,15 @@ include_once __DIR__ . "/src/xrender.php";
 <div class="main-wrapper">
     <main>
         <h1>Admin</h1>
-        <section>
+        <section id="kurser">
+            <div class="top-navigator">
+                <a class="" href="#kurser">
+                    <svg id="{{ id }}" class="svg-button expand-button rotate-270deg" viewBox="0 0 40 40">
+                        <rect class="background" x="0" y="0" width="40" height="40"></rect>
+                        <polygon class="foreground" points="30,20 15,35 10,30 20,20, 10,10 15,5"></polygon>
+                    </svg>
+                </a>
+            </div>
             <div class="section-controls">
                 <div>
                     <?= render("$rootPath/templates/html/toggle.html", [
@@ -36,13 +44,21 @@ include_once __DIR__ . "/src/xrender.php";
             </div>
             <div id="course-list"></div>
         </section>
-        <section>
+        <section id="jobb">
+            <div class="top-navigator">
+                <a class="" href="#jobb">
+                    <svg id="{{ id }}" class="svg-button expand-button rotate-270deg" viewBox="0 0 40 40">
+                        <rect class="background" x="0" y="0" width="40" height="40"></rect>
+                        <polygon class="foreground" points="30,20 15,35 10,30 20,20, 10,10 15,5"></polygon>
+                    </svg>
+                </a>
+            </div>
             <div class="section-controls">
                 <div>
                     <?= render("$rootPath/templates/html/toggle.html", [
                             "id" => "job-expand-button"
                     ])?>
-                    <h2>Jobs</h2>
+                    <h2>Jobb</h2>
                 </div>
                 <div>
                     <img id="job-loading" class="loading disabled" src="<?=$rootURL?>/media/loading.gif" alt="loading">
@@ -57,6 +73,14 @@ include_once __DIR__ . "/src/xrender.php";
             <div id="job-list"></div>
         </section>
         <section>
+            <div class="top-navigator">
+                <a class="" href="#jobb">
+                    <svg id="{{ id }}" class="svg-button expand-button rotate-270deg" viewBox="0 0 40 40">
+                        <rect class="background" x="0" y="0" width="40" height="40"></rect>
+                        <polygon class="foreground" points="30,20 15,35 10,30 20,20, 10,10 15,5"></polygon>
+                    </svg>
+                </a>
+            </div>
             <div class="section-controls">
                 <div>
                     <img id="website-loading" class="loading disabled" src="<?=$rootURL?>/media/loading.gif" alt="loading">

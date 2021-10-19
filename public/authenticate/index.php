@@ -9,17 +9,21 @@
 </head>
 <body>
 <?php include "$rootPath/templates/php/header.php"; ?>
-<main>
-    <form>
-        <label>Användarnamn:
-            <textarea id="username"></textarea>
-        </label>
-        <label>Lösenord:
-            <input id="password" type="password">
-        </label>
-        <input id="login-button" type="submit" value="Logga In">
-    </form>
-</main>
+<div class="main-wrapper">
+    <main>
+        <div class="form-wrapper">
+            <form class="form">
+                <label>Användarnamn:
+                    <textarea id="username"></textarea>
+                </label>
+                <label>Lösenord:
+                    <input id="password" type="password">
+                </label>
+                <input id="login-button" type="submit" value="Logga In">
+            </form>
+        </div>
+    </main>
+</div>
 <?php include "$rootPath/templates/php/footer.php"; ?>
 </body>
 </html>
