@@ -17,7 +17,7 @@ include_once __DIR__ . "/src/xrender.php";
         <h1>Admin</h1>
         <section id="kurser">
             <div class="top-navigator">
-                <a class="" href="#kurser">
+                <a href="#kurser">
                     <svg id="{{ id }}" class="svg-button expand-button rotate-270deg" viewBox="0 0 40 40">
                         <rect class="background" x="0" y="0" width="40" height="40"></rect>
                         <polygon class="foreground" points="30,20 15,35 10,30 20,20, 10,10 15,5"></polygon>
@@ -46,7 +46,7 @@ include_once __DIR__ . "/src/xrender.php";
         </section>
         <section id="jobb">
             <div class="top-navigator">
-                <a class="" href="#jobb">
+                <a href="#jobb">
                     <svg id="{{ id }}" class="svg-button expand-button rotate-270deg" viewBox="0 0 40 40">
                         <rect class="background" x="0" y="0" width="40" height="40"></rect>
                         <polygon class="foreground" points="30,20 15,35 10,30 20,20, 10,10 15,5"></polygon>
@@ -73,9 +73,9 @@ include_once __DIR__ . "/src/xrender.php";
             </div>
             <div id="job-list"></div>
         </section>
-        <section>
+        <section id="webpages">
             <div class="top-navigator">
-                <a class="" href="#jobb">
+                <a href="#webpages">
                     <svg id="{{ id }}" class="svg-button expand-button rotate-270deg" viewBox="0 0 40 40">
                         <rect class="background" x="0" y="0" width="40" height="40"></rect>
                         <polygon class="foreground" points="30,20 15,35 10,30 20,20, 10,10 15,5"></polygon>
