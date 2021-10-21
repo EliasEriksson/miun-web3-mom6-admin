@@ -77,6 +77,9 @@ class Content<T extends ContentType> {
     private errorElement: HTMLParagraphElement|null;
 
     constructor(content: T, template: string, master: ContentManager<T>) {
+        if (content["endDate"] !== undefined && !content["endDate"]) {
+            content["endDate"] = "";
+        }
         this.original = {...content};
         this.content = content;
         this.template = template;

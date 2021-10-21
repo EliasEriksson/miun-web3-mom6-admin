@@ -45,9 +45,11 @@ export const requestEndpoint = async (
         init.headers["Authorization"] = `Token ${token}`;
     }
     if (data) {
+        if (data["endDate"] !== undefined && !data["endDate"]) {
+            data["endDate"] = null;
+        }
         init["body"] = JSON.stringify(data);
     }
-
     let response = await fetch(`${apiURL.href}${endpoint}`, init);
     if (method === "DELETE") {
         return [null, response.status];
