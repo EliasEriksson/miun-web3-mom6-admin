@@ -1,4 +1,4 @@
-export const autoGrow = (textAreaElement: HTMLTextAreaElement, master: HTMLElement) => {
+export const autoGrow = (textAreaElement: HTMLTextAreaElement) => {
     const extra = textAreaElement.offsetHeight - textAreaElement.clientHeight;
     const init = textAreaElement.offsetHeight;
 
@@ -9,9 +9,15 @@ export const autoGrow = (textAreaElement: HTMLTextAreaElement, master: HTMLEleme
             init, (textAreaElement.scrollHeight + extra)
         );
         textAreaElement.style.height = `${height}px`;
+        console.log("triggered!")
     }
 
     textAreaElement.addEventListener("input", resize);
     window.addEventListener("resize", resize);
-    master.addEventListener("resize", resize);
+    const observer = new ResizeObserver(entries => {
+        for (const entry of entries) {
+            resize();
+        }
+    });
+    observer.observe(textAreaElement);
 }

@@ -69,12 +69,12 @@ class Content<T extends ContentType> {
     private master: ContentManager<T>;
     private readonly content: T;
     private readonly contentElements: { [key: string]: HTMLInputElement | HTMLTextAreaElement };
-    
-    private contentNode: HTMLElement|null;
-    private undoButtonElement: HTMLElement|null;
-    private moveUpButtonElement: HTMLElement|null;
-    private moveDownButtonElement: HTMLElement|null;
-    private errorElement: HTMLParagraphElement|null;
+
+    private contentNode: HTMLElement | null;
+    private undoButtonElement: HTMLElement | null;
+    private moveUpButtonElement: HTMLElement | null;
+    private moveDownButtonElement: HTMLElement | null;
+    private errorElement: HTMLParagraphElement | null;
 
     constructor(content: T, template: string, master: ContentManager<T>) {
         if (content["endDate"] !== undefined && content["endDate"] === null) {
@@ -183,7 +183,7 @@ class Content<T extends ContentType> {
             element = <HTMLInputElement | HTMLTextAreaElement>contentNode.querySelector(`[name=${key}]`);
             if (element) {
                 if (element instanceof HTMLTextAreaElement) {
-                    autoGrow(element, this.master.getContentListElement());
+                    autoGrow(element);
                 }
                 this.contentElements[key] = element;
 
@@ -243,7 +243,7 @@ class Content<T extends ContentType> {
             shake(this.contentNode);
         })
     }
-    
+
     eraseError = () => {
         this.errorElement.innerHTML = "";
     }
@@ -312,7 +312,7 @@ abstract class ContentManager<T extends ContentType> {
         }
     }
 
-    setSyncRequest = (content: Content<T>, request: Callable, force=false) => {
+    setSyncRequest = (content: Content<T>, request: Callable, force = false) => {
         if (!this.syncRequests.has(content)) {
             this.syncRequests.set(content, request);
         } else {
@@ -342,7 +342,7 @@ abstract class ContentManager<T extends ContentType> {
             }
         });
 
-        let response: ContentType|ContentErrors;
+        let response: ContentType | ContentErrors;
         let status: number;
         let contentError: Content<T>;
         for await (let [content, request] of this.syncRequests) {
@@ -410,7 +410,7 @@ abstract class ContentManager<T extends ContentType> {
         })
         if (this.content.length) {
             this.content[0].hideMoveUp();
-            this.content[this.content.length-1].hideMoveDown();
+            this.content[this.content.length - 1].hideMoveDown();
         }
     }
 
@@ -425,7 +425,7 @@ abstract class ContentManager<T extends ContentType> {
         content.scrollTo();
 
         this.setSyncRequest(content, async () => {
-            let [response, status]: [T|ContentErrors, number] = await requestEndpoint(
+            let [response, status]: [T | ContentErrors, number] = await requestEndpoint(
                 `${this.endpoint}/`, this.token, "POST", content.getContent()
             );
             if (200 <= status && status < 300) {
@@ -511,10 +511,6 @@ abstract class ContentManager<T extends ContentType> {
         for (const contentElement of this.content) {
             contentElement.revertChanges();
         }
-    }
-
-    getContentListElement = () => {
-        return this.contentListElement;
     }
 }
 

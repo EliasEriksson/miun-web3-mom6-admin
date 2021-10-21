@@ -52,6 +52,7 @@ section {
     justify-content: space-between;
     width: 100%;
     padding: 10px;
+    border-radius: 10px;
 
     > div {
       display: flex;
@@ -98,6 +99,7 @@ section {
   grid-template-columns: 1fr auto;
   gap: 10px;
   margin: 10px;
+  border-radius: 10px;
 
   .form-controls {
     display: flex;
