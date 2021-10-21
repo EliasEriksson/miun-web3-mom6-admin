@@ -606,7 +606,7 @@ window.addEventListener("load", async () => {
     );
 
     const token = localStorage.getItem("token");
-    const courseContentManager = CourseContentManager.create(
+    CourseContentManager.create(
         token, commitCourseChangesElement
     ).then(async manager => {
         await manager.getRequest();
@@ -624,7 +624,7 @@ window.addEventListener("load", async () => {
         return manager;
     });
 
-    const jobContentManager = JobContentManager.create(
+    JobContentManager.create(
         token, commitJobChangesElement
     ).then(async manager => {
         await manager.getRequest();
@@ -642,7 +642,7 @@ window.addEventListener("load", async () => {
         return manager;
     });
 
-    const webPageContentManager = WebPageContentManager.create(
+    WebPageContentManager.create(
         token, commitWebPageChangesElement
     ).then(async manager => {
         await manager.getRequest();
