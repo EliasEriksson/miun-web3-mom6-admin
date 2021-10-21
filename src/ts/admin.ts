@@ -180,7 +180,7 @@ class Content<T extends ContentType> {
             element = <HTMLInputElement | HTMLTextAreaElement>contentNode.querySelector(`[name=${key}]`);
             if (element) {
                 if (element instanceof HTMLTextAreaElement) {
-                    autoGrow(element);
+                    autoGrow(element, this.master.getContentListElement());
                 }
                 this.contentElements[key] = element;
 
@@ -508,6 +508,10 @@ abstract class ContentManager<T extends ContentType> {
         for (const contentElement of this.content) {
             contentElement.revertChanges();
         }
+    }
+
+    getContentListElement = () => {
+        return this.contentListElement;
     }
 }
 

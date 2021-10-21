@@ -1,4 +1,4 @@
-export const apiURL = new URL("https://web3mom6rest.eliaseriksson.eu/");
+export const apiURL = new URL("http://127.0.0.1:8000/");
 
 export const translateCourse = {
     courses: {
