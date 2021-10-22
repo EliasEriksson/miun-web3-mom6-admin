@@ -9,7 +9,6 @@ export const autoGrow = (textAreaElement: HTMLTextAreaElement) => {
             init, (textAreaElement.scrollHeight + extra)
         );
         textAreaElement.style.height = `${height}px`;
-        console.log("triggered!")
     }
 
     textAreaElement.addEventListener("input", resize);

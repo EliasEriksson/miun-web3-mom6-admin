@@ -3,7 +3,7 @@ import {redirect} from "./modules/redirect.js";
 import {shake} from "./modules/error.js";
 
 
-if (localStorage.getItem("token")) {
+if (localStorage.getItem("web3mom6token")) {
     redirect("../");
 }
 
@@ -21,7 +21,7 @@ window.addEventListener("load", () => {
             usernameElement.value, passwordElement.value
         );
         if (200 <= status && status < 300) {
-            localStorage.setItem("token", token.token);
+            localStorage.setItem("web3mom6token", token.token);
             redirect("../");
         } else {
             errorElement.innerHTML = "Fel inloggningsuppgifter.";

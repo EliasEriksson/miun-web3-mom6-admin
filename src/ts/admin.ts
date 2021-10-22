@@ -14,7 +14,7 @@ import {autoGrow} from "./modules/triggers.js";
 import {redirect} from "./modules/redirect.js";
 import {shake, writeErrors} from "./modules/error.js";
 
-if (!localStorage.getItem("token")) {
+if (!localStorage.getItem("web3mom6token")) {
     redirect("authenticate/")
 }
 
@@ -602,7 +602,7 @@ window.addEventListener("load", async () => {
         document.getElementById("webpage-list")
     );
 
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("web3mom6token");
     CourseContentManager.create(
         token, commitCourseChangesElement
     ).then(async manager => {
