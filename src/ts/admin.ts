@@ -612,6 +612,9 @@ window.addEventListener("load", async () => {
             manager.addContent();
         });
         commitCourseChangesElement.addEventListener("click", async () => {
+            if (commitCourseChangesElement.classList.contains("disabled")) {
+                return;
+            }
             if (confirm("Är du säker på att du vill applicera ändringarna gjorda till alla kurser?")) {
                 toggleClass(courseLoadingElement, "disabled");
                 await manager.syncRequest();
@@ -630,6 +633,9 @@ window.addEventListener("load", async () => {
             manager.addContent();
         });
         commitJobChangesElement.addEventListener("click", async () => {
+            if (commitJobChangesElement.classList.contains("disabled")) {
+                return;
+            }
             if (confirm("Är du säker på att du vill applicera ändringarna gjorda till alla jobb?")) {
                 toggleClass(jobLoadingElement, "disabled");
                 await manager.syncRequest();
@@ -648,6 +654,9 @@ window.addEventListener("load", async () => {
             manager.addContent();
         });
         commitWebPageChangesElement.addEventListener("click", async () => {
+            if (commitWebPageChangesElement.classList.contains("disabled")) {
+                return;
+            }
             if (confirm("Är du säker på att du vill applicera ändringarna gjorda till alla webbplatser?")) {
                 toggleClass(websiteLoadingElement, "disabled");
                 await manager.syncRequest();
