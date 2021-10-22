@@ -143,7 +143,7 @@ class Content<T extends ContentType> {
 
     scrollTo = () => {
         let space = (window.innerHeight - this.contentNode.scrollHeight) / 2;
-        window.scrollTo(window.scrollX, this.contentNode.offsetTop - space);
+        window.scrollTo(window.scrollX, window.scrollY + this.contentNode.getBoundingClientRect().top - space);
     }
 
     render = () => {
@@ -490,6 +490,7 @@ abstract class ContentManager<T extends ContentType> {
             }, true);
         }
         this.toggleCommit();
+        this.toggleMoveButtons();
     }
 
     editContent = (content: Content<T>) => {
