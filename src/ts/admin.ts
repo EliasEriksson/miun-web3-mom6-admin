@@ -133,6 +133,7 @@ class Content<T extends ContentType> {
      */
     updateOriginal = () => {
         this.original = {...this.content}
+        this.toggleUndo();
     }
 
     /**
