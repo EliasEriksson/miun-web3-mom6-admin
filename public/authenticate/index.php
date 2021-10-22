@@ -1,6 +1,6 @@
 <?php include_once __DIR__ . "/../config.php"; ?>
 <!doctype html>
-<html lang="en">
+<html lang="se">
 <head>
     <?php include "$rootPath/templates/php/head.php"; ?>
     <script src="<?= $rootURL ?>/js/authenticate.js" type="module"></script>
