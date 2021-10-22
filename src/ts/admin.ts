@@ -14,10 +14,19 @@ import {autoGrow} from "./modules/triggers.js";
 import {redirect} from "./modules/redirect.js";
 import {shake, writeErrors} from "./modules/error.js";
 
+/**
+ * redirect the user to login if the user does not have a token
+ */
 if (!localStorage.getItem("web3mom6token")) {
     redirect("authenticate/")
 }
 
+
+/**
+ * helper function to toggle a class on / off
+ * @param element: HTMLElement to toggle the class on
+ * @param cls: the css class
+ */
 const toggleClass = (element: HTMLElement, cls: string) => {
     if (element.classList.contains(cls)) {
         element.classList.remove(cls);
@@ -26,6 +35,11 @@ const toggleClass = (element: HTMLElement, cls: string) => {
     }
 }
 
+/**
+ * a class to represent the drop-down menu toggle button
+ *
+ * this class is unnecessary but too little time to remove it
+ */
 class Toggle {
     private htmlElement: HTMLElement;
     private toggleHtmlElement: HTMLElement
@@ -38,6 +52,9 @@ class Toggle {
         this.htmlElement.addEventListener("click", this.toggle);
     }
 
+    /**
+     * toggles the menu on
+     */
     toggleOn = () => {
         if (!this.on) {
             this.htmlElement.classList.add("rotate-90deg");
@@ -46,6 +63,9 @@ class Toggle {
         }
     }
 
+    /**
+     * toggles the menu off
+     */
     toggleOff = () => {
         if (this.on) {
             this.htmlElement.classList.remove("rotate-90deg");
@@ -54,6 +74,9 @@ class Toggle {
         }
     }
 
+    /**
+     * toggles the menu to the oposite
+     */
     toggle = () => {
         if (this.on) {
             this.toggleOff();
@@ -63,6 +86,13 @@ class Toggle {
     }
 }
 
+/**
+ * represents a single item in the drop-down menu
+ *
+ * wraps around an object and keeps it in sync with its related inputs.
+ * a copy of the original object is kept to help determine when to show the
+ * undo button and what to undo to.
+ */
 class Content<T extends ContentType> {
     private readonly template;
     private original: T;
@@ -77,12 +107,17 @@ class Content<T extends ContentType> {
     private errorElement: HTMLParagraphElement | null;
 
     constructor(content: T, template: string, master: ContentManager<T>) {
+        // if there is a null endDate convert to string. null endDate means current
         if (content["endDate"] !== undefined && content["endDate"] === null) {
             content["endDate"] = "";
         }
+        // copies teh primitive types from given content to an original copy.
+        // works since primitives are not passed by reference
         this.original = {...content};
         this.content = content;
         this.template = template;
+
+        // a reference to the ContentManager where this content is part of.
         this.master = master;
         this.contentElements = {};
 
@@ -93,6 +128,9 @@ class Content<T extends ContentType> {
         this.errorElement = null;
     }
 
+    /**
+     * updates the original content to the current content
+     */
     updateOriginal = () => {
         this.original = {...this.content}
     }
