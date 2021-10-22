@@ -1,5 +1,6 @@
 @import "mixins";
 
+// the dark colors are defined and then converted to light styles
 $background-color-dark: #36393f;
 $darker-background-color-dark: #202225;
 $foreground-color-dark: #18191c;
@@ -22,6 +23,11 @@ $select-color-light: lighten($select-color-dark, 100 - $weight);
 $error-color-light: lighten($error-color-dark, 100 - $weight);
 $success-color-light: lighten($success-color-dark, 100 - $weight);
 $contrast-color-light: invert($contrast-color-dark, $weight);
+
+/**
+ * this file contains color styling for all elements
+ */
+
 
 body {
   background-color: $background-color-light;
@@ -256,17 +262,11 @@ body {
     }
 
     &:focus {
-      //border-radius: 1px;
-      //border-style: solid;
       border-width: 2px;
       background-color: lighten($background-color-light, 2%);
       border-color: $select-color-light;
 
       @include darkMode() {
-        //border-top: none;
-        //border-left: none;
-        //border-bottom: 1px inset;
-        //border-right: 1px inset;
         background-color: lighten($background-color-dark, 2%);
         border-color: $select-color-dark;
       }

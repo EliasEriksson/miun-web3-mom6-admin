@@ -3,7 +3,6 @@
 <html lang="en">
 <head>
     <?php include "$rootPath/templates/php/head.php"; ?>
-    <script src="<?= $rootURL ?>/js/auto-grow-textarea.js" defer></script>
     <script src="<?= $rootURL ?>/js/authenticate.js" type="module"></script>
     <title>Authenticate</title>
 </head>
