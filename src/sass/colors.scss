@@ -5,6 +5,7 @@ $darker-background-color-dark: #202225;
 $foreground-color-dark: #18191c;
 $darker-foreground-color-dark: #18191c;
 
+$link-color-dark: #00aff4;
 $select-color-dark: #4551c5;
 $error-color-dark: #ed4043;
 $success-color-dark: #32a662;
@@ -16,7 +17,7 @@ $darker-background-color-light: invert($background-color-dark, $weight);
 $foreground-color-light: invert($darker-foreground-color-dark, $weight);
 $darker-foreground-color-light: invert($foreground-color-dark, $weight);
 
-
+$link-color-light: darken($link-color-dark, (100 - $weight) * 2);
 $select-color-light: lighten($select-color-dark, 100 - $weight);
 $error-color-light: lighten($error-color-dark, 100 - $weight);
 $success-color-light: lighten($success-color-dark, 100 - $weight);
@@ -295,14 +296,6 @@ body {
 footer {
   background-color: $foreground-color-light;
 
-  a {
-    color: $select-color-light;
-
-    @include darkMode() {
-      color: $select-color-dark;
-    }
-  }
-
   @include darkMode() {
     background-color: $foreground-color-dark;
   }
@@ -316,3 +309,10 @@ footer {
   }
 }
 
+a {
+  color: $link-color-light;
+
+  @include darkMode() {
+    color: $link-color-dark;
+  }
+}
