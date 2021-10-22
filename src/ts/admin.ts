@@ -135,14 +135,9 @@ class Content<T extends ContentType> {
         this.original = {...this.content}
     }
 
-    private addInputListener = (contentNode: HTMLDivElement, element: HTMLInputElement | HTMLTextAreaElement, key: string): void => {
-        element.addEventListener("input", () => {
-            this.content[key] = element.value;
-            this.master.editContent(this);
-            this.toggleUndo();
-        });
-    }
-
+    /**
+     * if the list is changed the undo is toggled.
+     */
     toggleUndo = () => {
         if (this.changed()) {
             if (this.undoButtonElement.classList.contains("disabled")) {
@@ -155,87 +150,150 @@ class Content<T extends ContentType> {
         }
     }
 
+    /**
+     * hides the move up button
+     */
     hideMoveUp = () => {
         if (!this.moveUpButtonElement.classList.contains("invisible")) {
             this.moveUpButtonElement.classList.add("invisible");
         }
     }
 
+    /**
+     * shows the move up button
+     */
     showMoveUp = () => {
         if (this.moveUpButtonElement.classList.contains("invisible")) {
             this.moveUpButtonElement.classList.remove("invisible");
         }
     }
 
+    /**
+     * hides the move down button
+     */
     hideMoveDown = () => {
         if (!this.moveDownButtonElement.classList.contains("invisible")) {
             this.moveDownButtonElement.classList.add("invisible");
         }
     }
 
+    /**
+     * shows the move down button
+     */
     showMoveDown = () => {
         if (this.moveDownButtonElement.classList.contains("invisible")) {
             this.moveDownButtonElement.classList.remove("invisible");
         }
     }
 
+    /**
+     * scrolls the document so this element is in the middle of the screen
+     */
     scrollTo = () => {
         let space = (window.innerHeight - this.contentNode.scrollHeight) / 2;
         window.scrollTo(window.scrollX, window.scrollY + this.contentNode.getBoundingClientRect().top - space);
     }
 
+    /**
+     * renders the HTML from the given content object.
+     *
+     * the whole contentNode is rendered with xRender then all input elements are queried with
+     * querySelector.
+     *
+     * all the inputs gets necessary event listeners
+     */
     render = () => {
         let contentNode = <HTMLDivElement>render(this.template, this.content);
-        let element: HTMLInputElement | HTMLTextAreaElement;
         this.contentNode = contentNode;
         this.errorElement = <HTMLParagraphElement>contentNode.querySelector(".error");
         this.undoButtonElement = <HTMLElement>contentNode.querySelector(".undo-button");
         this.moveUpButtonElement = <HTMLElement>contentNode.querySelector(".move-up-button");
         this.moveDownButtonElement = <HTMLElement>contentNode.querySelector(".move-down-button");
 
-        contentNode.querySelector("form").addEventListener("submit", e => {
-            e.preventDefault();
-        })
+        /**
+         * prevents the page from being refreshed if user hits enter on a form input
+         */
+        contentNode.querySelector("form").addEventListener("submit", e => e.preventDefault);
 
+        /**
+         * if the undo element is clicked the changes are reverted,
+         * the content manager is "signaled" to do whatever it needs to do on an undo
+         * and the undo buttons is toggled.
+         */
         this.undoButtonElement.addEventListener("click", () => {
             this.revertChanges();
-            this.master.undoContent(this);
+            this.master.undoContent();
             this.toggleUndo();
         });
 
+        /**
+         * the content manager is "signaled" to move the contentNode up
+         */
         this.moveUpButtonElement.addEventListener("click", () => {
             this.master.moveContentUp(this, contentNode);
         });
 
+        /**
+         * the content manager is "signaled" to mode the contentNode down
+         */
         this.moveDownButtonElement.addEventListener("click", () => {
             this.master.moveContentDown(this, contentNode);
         });
-
+        /**
+         * an alert is made for the user to confirm the deletion
+         * the content manager is "signaled" to delete the contentNode
+         */
         contentNode.querySelector(".delete-button").addEventListener("click", () => {
             if (confirm(`Är du säker på att du vill ta bort detta?`)) {
                 this.master.deleteContent(this, contentNode);
             }
         });
 
+        /**
+         * creates an input for every input that have name attribute that matches 
+         * the contents keys
+         */
         for (const key in this.content) {
-            element = <HTMLInputElement | HTMLTextAreaElement>contentNode.querySelector(`[name=${key}]`);
+            let element = <HTMLInputElement | HTMLTextAreaElement>contentNode.querySelector(`[name=${key}]`);
+            // if an element with a key matching an inputs name
             if (element) {
+                // if its a text area add the autoGrow functionality to it
                 if (element instanceof HTMLTextAreaElement) {
                     autoGrow(element);
                 }
                 this.contentElements[key] = element;
 
-                this.addInputListener(contentNode, element, key);
+                /**
+                 * if an input is updated store the new value of the input in the internal content object
+                 * signal to the content manager that an input was updated
+                 * and toggles the undo button if nessesary.
+                 */
+                element.addEventListener("input", () => {
+                    // cast to any required or typescript gets angry even if the type is checked with typeof
+                    // the type is either string or number (inferred from the type ContentType)
+                    if (typeof this.content[key] === "string") {
+                        this.content[key] = <any>element.value;
+                    } else {
+                        this.content[key] = <any>parseInt(element.value);
+                    }
+                    this.master.editContent(this);
+                    this.toggleUndo();
+                });
             }
         }
-
         return contentNode;
     }
 
+    /**
+     * checks if the internal content is changed from its original state
+     */
     changed = (): boolean => {
         return JSON.stringify(this.original) !== JSON.stringify(this.content);
     }
 
+    /**
+     * revert the current state to the original state
+     */
     revertChanges = () => {
         if (Object.keys(this.contentElements).length) {
             for (const key in this.contentElements) {
@@ -245,34 +303,66 @@ class Content<T extends ContentType> {
         }
     }
 
+    /**
+     * checks if the internal content is equal to another Content objects internal content
+     * @param other: another Content object
+     */
     equals = (other: Content<T>) => {
         return JSON.stringify(this.content) === JSON.stringify(other.content)
     }
 
+    /**
+     * get the current order of the content in the list
+     */
     getOrder = (): number => {
         return this.content.order;
     }
 
+    /**
+     * set the current order for the content in the list
+     * @param order
+     */
     setOrder = (order: number): void => {
         this.content.order = order;
     }
 
+    /**
+     * get a copy of the current internal content
+     */
     getContent = (): T => {
         return {...this.content};
     }
 
+    /**
+     * gets the contents database ID
+     *
+     * if this is 0 the content is not yet in the database
+     */
     getID = (): number => {
         return this.content.id;
     }
 
+    /**
+     * set the contents database ID
+     *
+     * this is meant to be used for when new content is pushed into the database and an ID is now know.
+     * @param id: id given from database
+     */
     setID = (id: number) => {
         this.content.id = id;
     }
-
+    /**
+     * writes errors to the error paragraph element
+     * @param error
+     * @param endpoint
+     */
     writeError = (error: ContentErrors, endpoint: string) => {
         writeErrors(error, this.errorElement, translateCourse[endpoint]);
     }
 
+    /**
+     * shakes the whole contentNode
+     */
     shake = () => {
         let wait = Math.abs(this.contentNode.getBoundingClientRect().top + window.scrollY) / 11
         new Promise(resolve => {
@@ -282,11 +372,25 @@ class Content<T extends ContentType> {
         })
     }
 
+    /**
+     * remove the error in the error element
+     */
     eraseError = () => {
         this.errorElement.innerHTML = "";
     }
 }
 
+/**
+ * ContentManager, this class represents a the list inside of the drop-down menu
+ * the content manager wraps around a list of Content objects and is therefore tightly coupled with
+ * the Content class
+ *
+ * this class is able to preform CRUD operations to the REST service depending on the changes to
+ * the internal list of Content objects.
+ *
+ * if a change is made a request is prepared in the syncRequests array which are all requested
+ * when the user commits changes.
+ */
 abstract class ContentManager<T extends ContentType> {
     protected abstract emptyContent: T;
 
@@ -312,22 +416,37 @@ abstract class ContentManager<T extends ContentType> {
         this.syncRequests = new Map();
     }
 
+    /**
+     * moves the internal content to their original order
+     */
     updateOriginal = () => {
         this.originalOrder = [...this.content];
     }
 
+    /**
+     * create a new Content object from the given emptyContent template
+     *
+     * @param content
+     */
     createContent = (content: T) => {
         return new Content<T>(JSON.parse(JSON.stringify(content)), this.contentTemplate, this);
     }
 
+    /**
+     * acquires all the content from the given endpoint.
+     *
+     * the content is added to the internal list and is rendered.
+     */
     getRequest = async () => {
         this.contentListElement.innerHTML = "";
+        // a request for the initial content from the REST service
         let [initialResponse, initialStatus]: [ApiGetResponse<T>, number] = await requestEndpoint(
             `${this.endpoint}/`, this.token
         );
         if (200 <= initialStatus && initialStatus < 300) {
             this.content = initialResponse.results.map(result => this.createContent(result));
 
+            // if there is more content in the database request the remainder
             if (initialResponse.next) {
                 let nextURL = new URL(initialResponse.next);
                 let limit = parseInt(nextURL.searchParams.get("limit"));
@@ -350,6 +469,16 @@ abstract class ContentManager<T extends ContentType> {
         }
     }
 
+    /**
+     * adds an internal request that should be applied when the user confirms changes
+     *
+     * if a request already exists the set is ignored unless its forced
+     * forced is used to apply a delete request.
+     *
+     * @param content
+     * @param request
+     * @param force
+     */
     setSyncRequest = (content: Content<T>, request: Callable, force = false) => {
         if (!this.syncRequests.has(content)) {
             this.syncRequests.set(content, request);
@@ -364,12 +493,24 @@ abstract class ContentManager<T extends ContentType> {
         }
     }
 
+    /**
+     * removed a request from the internal list
+     *
+     * @param content
+     */
     removeSyncRequest = (content: Content<T>) => {
         if (this.syncRequests.has(content)) {
             this.syncRequests.delete(content);
         }
     }
 
+    /**
+     * sends all the internal sync requests
+     *
+     * if there is an error the first one is saved and some nice UX effects are applied to it
+     *
+     * this method can be improved by using Promise.allSettled() but no time to implement
+     */
     syncRequest = async () => {
         this.content.forEach((content, index) => {
             if (content.getOrder() !== index) {
@@ -380,11 +521,9 @@ abstract class ContentManager<T extends ContentType> {
             }
         });
 
-        let response: ContentType | ContentErrors;
-        let status: number;
         let contentError: Content<T>;
         for await (let [content, request] of this.syncRequests) {
-            [response, status] = await request();
+            let [response, status] = await request();
             if (200 <= status && status < 300) {
                 content.updateOriginal();
                 this.removeSyncRequest(content);
@@ -404,12 +543,24 @@ abstract class ContentManager<T extends ContentType> {
         this.toggleCommit();
     }
 
+    /**
+     * tender all the content to the DOM
+     */
     renderContent = () => {
         for (const content of this.content) {
             this.contentListElement.appendChild(content.render());
         }
     }
 
+    /**
+     * checks if the internal list of Content is changed.
+     *
+     * true if:
+     *  1: the length of the list is changed
+     *  2: any internal Content objects are changed
+     *  3: the order of the Content is changed
+     *  4: a specific contents order does not match its internal order
+     */
     changed = (): boolean => {
         if (this.content.length === this.originalOrder.length) {
             for (let i = 0; i < this.content.length; i++) {
@@ -429,6 +580,9 @@ abstract class ContentManager<T extends ContentType> {
         return false;
     }
 
+    /**
+     * toggles the commit button if the Content manager is concidered changed
+     */
     toggleCommit = () => {
         if (!this.changed()) {
             if (!this.commitElement.classList.contains("disabled")) {
@@ -441,6 +595,12 @@ abstract class ContentManager<T extends ContentType> {
         }
     }
 
+    /**
+     * toggles the movbe buttons
+     * toggles all the buttons on
+     * then the top most Contents move up is turned off
+     * then the bottom most Contents move down is turned off
+     */
     toggleMoveButtons = () => {
         this.content.forEach(content => {
             content.showMoveUp();
@@ -452,6 +612,9 @@ abstract class ContentManager<T extends ContentType> {
         }
     }
 
+    /**
+     * adds a new empty content to the list
+     */
     addContent = () => {
         let content = this.createContent(this.emptyContent);
         let contentNode = content.render();
@@ -474,6 +637,12 @@ abstract class ContentManager<T extends ContentType> {
         this.contentListElement.style.height = `${this.contentListElement.scrollHeight}px`;
     }
 
+    /**
+     * move a contentNode higher up in the list and update the order
+     *
+     * @param content: a reference to the content object
+     * @param contentNode to be moved up: the content objects contentNode (should have been given by a get method)
+     */
     moveContentUp = (content: Content<T>, contentNode: HTMLDivElement): void => {
         let index = this.content.indexOf(content);
         if (index > 0) {
@@ -488,6 +657,12 @@ abstract class ContentManager<T extends ContentType> {
         content.scrollTo();
     }
 
+    /**
+     * move a contentNode lower down in the list and update the order
+     *
+     * @param content a reference to the content object
+     * @param contentNode the content objects contentNode (should have been given by a get method)
+     */
     moveContentDown = (content: Content<T>, contentNode: HTMLDivElement) => {
         let index = this.content.indexOf(content);
         if (index < this.content.length) {
@@ -501,6 +676,12 @@ abstract class ContentManager<T extends ContentType> {
         content.scrollTo();
     }
 
+    /**
+     * deletes a content from the list
+     *
+     * @param content: the content to be deleted
+     * @param contentNode: the content node to be deleted (should have been given by a get method)
+     */
     deleteContent = (content: Content<T>, contentNode: HTMLDivElement) => {
         let index = this.content.indexOf(content);
         if (index > -1) {
@@ -522,7 +703,8 @@ abstract class ContentManager<T extends ContentType> {
             this.content.splice(index, 1);
             this.contentListElement.removeChild(contentNode);
             this.contentListElement.style.height = `${newHeight}px`;
-
+            
+            // forces a delete request to trumph other potential POST / PUT request
             this.setSyncRequest(content, async () => {
                 return await requestEndpoint(`${this.endpoint}/${content.getID()}/`, this.token, "DELETE", content.getContent());
             }, true);
@@ -531,6 +713,10 @@ abstract class ContentManager<T extends ContentType> {
         this.toggleMoveButtons();
     }
 
+    /**
+     * if the content is changed add a sync request
+     * @param content
+     */
     editContent = (content: Content<T>) => {
         if (content.changed()) {
             this.setSyncRequest(content, async () => {
@@ -541,26 +727,25 @@ abstract class ContentManager<T extends ContentType> {
         this.contentListElement.style.height = `${this.contentListElement.scrollHeight}px`;
     }
 
-    undoContent = (content: Content<T>) => {
-        this.removeSyncRequest(content);
+    /**
+     * the main undoing is from the Content object itself. this method is just finishing the job
+     */
+    undoContent = () => {
         this.toggleCommit();
-    }
-
-    revertAllChanges = () => {
-        for (const contentElement of this.content) {
-            contentElement.revertChanges();
-        }
     }
 }
 
+/**
+ * Specializes the Content manager to handle Course content
+ */
 class CourseContentManager extends ContentManager<Course> {
     emptyContent = {
         id: 0,
         university: "",
         name: "",
         credit: 0,
-        startDate: new Date().toISOString().substring(0, 10),
-        endDate: new Date().toISOString().substring(0, 10),
+        startDate: "",
+        endDate: "",
         order: -1
     };
 
@@ -575,13 +760,16 @@ class CourseContentManager extends ContentManager<Course> {
     }
 }
 
+/**
+ * Specializes the Content manager to handle job content
+ */
 class JobContentManager extends ContentManager<Job> {
     emptyContent = {
         id: 0,
         company: "",
         title: "",
-        startDate: new Date().toISOString().substring(0, 10),
-        endDate: new Date().toISOString().substring(0, 10),
+        startDate: "",
+        endDate: "",
         order: -1
     }
 
@@ -595,6 +783,9 @@ class JobContentManager extends ContentManager<Job> {
     }
 }
 
+/**
+ * Specializes the Content manager to handle the webpage content
+ */
 class WebPageContentManager extends ContentManager<WebPage> {
     emptyContent = {
         id: 0,
@@ -614,6 +805,14 @@ class WebPageContentManager extends ContentManager<WebPage> {
     }
 }
 
+
+/**
+ * this is not a beautiful sight but it works
+ *
+ * can be fixed by moving all the queried HTML elements to global scope
+ * and modifying the Specialized Content manager class
+ * but there is no time.
+ */
 window.addEventListener("load", async () => {
     const addCourseElement = document.getElementById("add-course");
     const addJobElement = document.getElementById("add-job");
@@ -627,6 +826,7 @@ window.addEventListener("load", async () => {
     const jobLoadingElement = document.getElementById("job-loading");
     const websiteLoadingElement = document.getElementById("website-loading");
 
+    // setting upp the drop-down menu toggles
     const courseToggle = new Toggle(
         document.getElementById("course-expand-button"),
         document.getElementById("course-list")
@@ -640,7 +840,10 @@ window.addEventListener("load", async () => {
         document.getElementById("webpage-list")
     );
 
+    // acquiring the token
     const token = localStorage.getItem("web3mom6token");
+
+    // sets up the specific content managers
     CourseContentManager.create(
         token, commitCourseChangesElement
     ).then(async manager => {

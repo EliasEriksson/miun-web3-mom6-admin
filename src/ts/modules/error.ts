@@ -1,4 +1,4 @@
-import {ContentType, ContentErrors} from "./constants.js";
+import {ContentErrors} from "./constants.js";
 
 /**
  * applies an error shake for a duration on a HTMLElement.

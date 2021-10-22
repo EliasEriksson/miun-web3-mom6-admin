@@ -1,3 +1,7 @@
+/**
+ * makes the given textAreaElement responsive in height and avoids the scrollbar
+ * @param textAreaElement
+ */
 export const autoGrow = (textAreaElement: HTMLTextAreaElement) => {
     const extra = textAreaElement.offsetHeight - textAreaElement.clientHeight;
     const init = textAreaElement.offsetHeight;

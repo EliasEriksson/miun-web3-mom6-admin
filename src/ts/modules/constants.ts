@@ -100,6 +100,6 @@ export type ContentErrors = CourseErrors | JobErrors | WebPageErrors;
 
 export type ApiEndpoint = "courses" | "jobs" | "webpages";
 
-export const _ = "";
+export const _ = ""; // cause sometimes typescript compiles stuff badly
 
-export type Callable = (...any) => any;
+export type Callable = (...any: any) => any;
