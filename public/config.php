@@ -4,7 +4,7 @@ ini_set("display_errors", 1);
 /**
  * rootURL is is a reference to the siteRoot no matter where the project is placed on the system
  * if config.php is placed so that its accessed on the webserver with domain.com/level1/level2/level3/config.php
- * rootURl will be an absolute URL referring to /level1/level2/level3/
+ * rootURl will be an absolute URL referring to /level1/level2/level3/ thus defining level3 as the root
  *
  * this is helpful when structure is different on localhost vs live host. if links are prefixed with this
  * the files will always be found.
